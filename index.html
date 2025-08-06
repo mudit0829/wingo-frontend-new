@@ -106,16 +106,18 @@
   <button class="tab-btn active" onclick="showTab('gameHistory')">Game history</button>
   <button class="tab-btn" onclick="showTab('chart')">Chart</button>
   <button class="tab-btn" onclick="showTab('myHistory')">My history</button>
-</div>
-
+<!-- Game History Section -->
 <div class="tab-content" id="gameHistory">
-  <table class="history-table" id="gameHistoryTable">
-    <!-- Dynamic Game History Rows -->
+  <table class="history-table">
+    <!-- Table will be dynamically filled by JS -->
+    <tbody id="gameHistoryTable">
+      <!-- Filled by JS -->
+    </tbody>
   </table>
 </div>
 
+<!-- Chart Section -->
 <div class="tab-content hidden" id="chart">
-  <!-- You can keep this static chart section for now -->
   <table class="history-table">
     <tr><th>Statistic</th><th colspan="10">(last 100 Periods)</th></tr>
     <tr><td>Winning Numbers</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr>
@@ -124,13 +126,21 @@
     <tr><td>Frequency</td><td>10</td><td>7</td><td>13</td><td>12</td><td>11</td><td>12</td><td>13</td><td>12</td><td>13</td><td>12</td></tr>
     <tr><td>Max consecutive</td><td>1</td><td>2</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>2</td></tr>
   </table>
-</div>
-
-<div class="tab-content hidden" id="myHistory">
-  <div id="myHistoryList">
-    <!-- Dynamic My History Items -->
+  <div class="chart-trend">
+    <div>20250806100051048: 0 (S)</div>
+    <div>20250806100051047: 7 (B)</div>
+    <div>20250806100051046: 2 (S)</div>
+    <div>20250806100051045: 3 (S)</div>
   </div>
 </div>
+
+<!-- My History Section -->
+<div class="tab-content hidden" id="myHistory">
+  <div id="myHistoryContent">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
 
 <script>
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
