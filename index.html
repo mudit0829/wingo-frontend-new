@@ -1,3 +1,5 @@
+Please give me Final Update considering my current design intact
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +10,6 @@
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
   <img src="assets/logo.png" alt="Game Logo" class="logo">
   <div class="header-icons">
@@ -17,10 +18,9 @@
   </div>
 </div>
 
-<!-- Wallet Section -->
 <div class="wallet-card">
   <div class="wallet-balance">
-    <div class="balance-amount">₹<span id="walletAmount">0.00</span></div>
+    <div class="balance-amount">₹<span id="walletAmount">7.66</span></div>
     <div class="balance-label">Wallet balance</div>
   </div>
   <div class="wallet-buttons">
@@ -29,24 +29,36 @@
   </div>
 </div>
 
-<!-- Footer Message -->
 <div class="footer-message">
   <span class="speaker-icon">🔊</span>
   Please Fill In The Correct Bank Card Inform
   <button class="detail-btn">Detail</button>
 </div>
 
-<!-- Round Tabs -->
+  <!-- Round Selection Tabs -->
 <div class="round-tabs">
-  <div class="tab active"><img src="assets/clock-active.png" alt="WinGo 30s"><span>WinGo 30sec</span></div>
-  <div class="tab"><img src="assets/clock-inactive.png" alt="WinGo 1min"><span>WinGo 1 Min</span></div>
-  <div class="tab"><img src="assets/clock-inactive.png" alt="WinGo 3min"><span>WinGo 3 Min</span></div>
-  <div class="tab"><img src="assets/clock-inactive.png" alt="WinGo 5min"><span>WinGo 5 Min</span></div>
+  <div class="tab active">
+    <img src="assets/clock-active.png" alt="WinGo 30s">
+    <span>WinGo 30sec</span>
+  </div>
+  <div class="tab">
+    <img src="assets/clock-inactive.png" alt="WinGo 1min">
+    <span>WinGo 1 Min</span>
+  </div>
+  <div class="tab">
+    <img src="assets/clock-inactive.png" alt="WinGo 3min">
+    <span>WinGo 3 Min</span>
+  </div>
+  <div class="tab">
+    <img src="assets/clock-inactive.png" alt="WinGo 5min">
+    <span>WinGo 5 Min</span>
+  </div>
 </div>
 
-<!-- Timer Section -->
+<!-- Timer & Round Info Card -->
 <div class="timer-section">
   <div class="how-to-play">
+    <!-- No icon, just text for now -->
     <button class="how-to-play-btn">How to play</button>
     <div class="game-type">WinGo 30sec</div>
   </div>
@@ -60,34 +72,34 @@
     </div>
     <div class="timer-countdown">
       <div class="time-label">Time remaining</div>
-      <div class="time-digits" id="timeDigits">00:30</div>
-      <div class="round-id" id="roundId">0000000000</div>
+      <div class="time-digits" id="timeDigits">00:14</div>
+      <div class="round-id" id="roundId">20250806100050834</div>
     </div>
   </div>
 </div>
 
-<!-- Color Betting -->
+  <!-- Phase 3: Color Betting Section -->
 <div class="color-betting-section">
-  <button class="color-btn green" onclick="openBetPopup('Green')">Green</button>
-  <button class="color-btn violet" onclick="openBetPopup('Violet')">Violet</button>
-  <button class="color-btn red" onclick="openBetPopup('Red')">Red</button>
+  <button class="color-btn green" onclick="selectColor('Green')">Green</button>
+  <button class="color-btn violet" onclick="selectColor('Violet')">Violet</button>
+  <button class="color-btn red" onclick="selectColor('Red')">Red</button>
 </div>
 
 <!-- Number Balls Grid -->
 <div class="number-balls-grid">
-  <img src="assets/ball-0.png" alt="0" onclick="openBetPopup(0)">
-  <img src="assets/ball-1.png" alt="1" onclick="openBetPopup(1)">
-  <img src="assets/ball-2.png" alt="2" onclick="openBetPopup(2)">
-  <img src="assets/ball-3.png" alt="3" onclick="openBetPopup(3)">
-  <img src="assets/ball-4.png" alt="4" onclick="openBetPopup(4)">
-  <img src="assets/ball-5.png" alt="5" onclick="openBetPopup(5)">
-  <img src="assets/ball-6.png" alt="6" onclick="openBetPopup(6)">
-  <img src="assets/ball-7.png" alt="7" onclick="openBetPopup(7)">
-  <img src="assets/ball-8.png" alt="8" onclick="openBetPopup(8)">
-  <img src="assets/ball-9.png" alt="9" onclick="openBetPopup(9)">
+  <img src="assets/ball-0.png" alt="0" onclick="selectNumber(0)">
+  <img src="assets/ball-1.png" alt="1" onclick="selectNumber(1)">
+  <img src="assets/ball-2.png" alt="2" onclick="selectNumber(2)">
+  <img src="assets/ball-3.png" alt="3" onclick="selectNumber(3)">
+  <img src="assets/ball-4.png" alt="4" onclick="selectNumber(4)">
+  <img src="assets/ball-5.png" alt="5" onclick="selectNumber(5)">
+  <img src="assets/ball-6.png" alt="6" onclick="selectNumber(6)">
+  <img src="assets/ball-7.png" alt="7" onclick="selectNumber(7)">
+  <img src="assets/ball-8.png" alt="8" onclick="selectNumber(8)">
+  <img src="assets/ball-9.png" alt="9" onclick="selectNumber(9)">
 </div>
 
-<!-- Multipliers -->
+<!-- Multipliers Row -->
 <div class="multipliers-row">
   <button class="multiplier-btn random" onclick="selectMultiplier('Random')">Random</button>
   <button class="multiplier-btn active" onclick="selectMultiplier('X1')">X1</button>
@@ -97,93 +109,138 @@
   <button class="multiplier-btn" onclick="selectMultiplier('X50')">X50</button>
   <button class="multiplier-btn" onclick="selectMultiplier('X100')">X100</button>
 </div>
-
-<!-- History Tabs -->
+  <!-- Phase 4: History Tabs -->
 <div class="history-tabs">
   <button class="tab-btn active" onclick="showTab('gameHistory')">Game history</button>
   <button class="tab-btn" onclick="showTab('chart')">Chart</button>
   <button class="tab-btn" onclick="showTab('myHistory')">My history</button>
 </div>
 
-<!-- Game History -->
+<!-- Game History Section -->
 <div class="tab-content" id="gameHistory">
-  <!-- History Table Code Here (Same as before) -->
+  <table class="history-table">
+    <tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr>
+    <tr><td>20250806100051046</td><td>2</td><td>Small</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051045</td><td>3</td><td>Small</td><td><span class="dot green"></span></td></tr>
+    <tr><td>20250806100051044</td><td>6</td><td>Big</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051043</td><td>8</td><td>Big</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051042</td><td>0</td><td>Small</td><td><span class="dot red"></span> <span class="dot violet"></span></td></tr>
+    <tr><td>20250806100051041</td><td>9</td><td>Big</td><td><span class="dot green"></span></td></tr>
+  </table>
 </div>
 
-<!-- Chart -->
+<!-- Chart Section -->
 <div class="tab-content hidden" id="chart">
-  <!-- Chart Table Code Here (Same as before) -->
-</div>
-
-<!-- My History -->
-<div class="tab-content hidden" id="myHistory">
-  <!-- My History Items Here (Same as before) -->
-</div>
-
-<!-- Betting Popup -->
-<div id="betPopup" class="bet-popup hidden">
-  <div class="bet-popup-content">
-    <h3 id="betTitle">Place Bet</h3>
-    <input type="number" id="betAmount" placeholder="Enter amount" min="1" />
-    <button onclick="confirmBet()">Place Bet</button>
-    <button onclick="closeBetPopup()">Cancel</button>
+  <table class="history-table">
+    <tr><th>Statistic</th><th colspan="10">(last 100 Periods)</th></tr>
+    <tr><td>Winning Numbers</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr>
+    <tr><td>Missing</td><td>0</td><td>25</td><td>2</td><td>3</td><td>10</td><td>15</td><td>4</td><td>1</td><td>5</td><td>7</td></tr>
+    <tr><td>Avg missing</td><td>8</td><td>11</td><td>6</td><td>32</td><td>7</td><td>10</td><td>6</td><td>7</td><td>13</td><td>6</td></tr>
+    <tr><td>Frequency</td><td>10</td><td>7</td><td>13</td><td>12</td><td>11</td><td>12</td><td>13</td><td>12</td><td>13</td><td>12</td></tr>
+    <tr><td>Max consecutive</td><td>1</td><td>2</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>2</td></tr>
+  </table>
+  <div class="chart-trend">
+    <!-- Simplified visual lines -->
+    <div>20250806100051048: 0 (S)</div>
+    <div>20250806100051047: 7 (B)</div>
+    <div>20250806100051046: 2 (S)</div>
+    <div>20250806100051045: 3 (S)</div>
   </div>
 </div>
 
-<!-- Scripts -->
+<!-- My History Section -->
+<div class="tab-content hidden" id="myHistory">
+  <div class="my-history-item succeed">
+    <div class="color-box green"></div>
+    <div>
+      <div>20250806100051054</div>
+      <div>2025-08-06 14:16:51</div>
+    </div>
+    <div class="status succeed">Succeed</div>
+    <div class="amount">+₹1.96</div>
+  </div>
+  <div class="my-history-item failed">
+    <div class="color-box green"></div>
+    <div>
+      <div>20250806100051053</div>
+      <div>2025-08-06 14:16:09</div>
+    </div>
+    <div class="status failed">Failed</div>
+    <div class="amount">-₹1.00</div>
+  </div>
+  <!-- Add more history items similarly -->
+</div>
+
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+
+<style>
+  .history-tabs {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    background: #2e2e2e;
+    color: #ccc;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  .tab-btn.active { background: linear-gradient(to right, #f0d17c, #f0c14b); color: #000; }
+
+  .history-table {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .history-table th { background: #2e2e2e; color: #fff; }
+  .history-table td { padding: 5px; }
+  .dot { width: 10px; height: 10px; display: inline-block; border-radius: 50%; }
+  .dot.red { background: #e74c3c; }
+  .dot.green { background: #2ecc71; }
+  .dot.violet { background: #9b59b6; }
+
+  .chart-trend { font-size: 12px; color: #fff; }
+
+  .my-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+  }
+  .color-box { width: 30px; height: 30px; border-radius: 5px; }
+  .color-box.green { background: #2ecc71; }
+  .color-box.red { background: #e74c3c; }
+  .color-box.violet { background: #9b59b6; }
+
+  .status.succeed { color: #2ecc71; font-weight: bold; }
+  .status.failed { color: #e74c3c; font-weight: bold; }
+  .amount { font-weight: bold; }
+
+  .hidden { display: none; }
+</style>
+
 <script>
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 let currentEmail = localStorage.getItem("userEmail") || "user@example.com";
 let currentRoundId = "";
+let timerInterval;
 let bettingClosed = false;
-let selectedBet = {};
 
-function showTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-  document.getElementById(tabId).classList.remove('hidden');
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
-function openBetPopup(selection) {
-  if (bettingClosed) return alert("Betting Closed!");
-  selectedBet = typeof selection === 'string' ? { colorBet: selection } : { numberBet: selection };
-  document.getElementById('betTitle').innerText = `Place Bet on ${selection}`;
-  document.getElementById('betPopup').classList.remove('hidden');
-}
-
-function closeBetPopup() {
-  document.getElementById('betPopup').classList.add('hidden');
-  document.getElementById('betAmount').value = '';
-}
-
-async function confirmBet() {
-  const amount = parseFloat(document.getElementById('betAmount').value);
-  if (!amount || amount <= 0) return alert("Enter valid amount!");
-
-  const payload = { email: currentEmail, roundId: currentRoundId, amount, ...selectedBet };
-  try {
-    const res = await fetch(`${apiUrl}/api/bets`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Bet Failed!");
-    alert("✅ Bet Placed Successfully!");
-    closeBetPopup();
-    fetchWalletBalance();
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-}
-
-function selectMultiplier(multiplier) {
-  document.querySelectorAll('.multiplier-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  alert(`Multiplier ${multiplier} selected (coming soon)`);
-}
+// Initial Load
+fetchWalletBalance();
+fetchCurrentRound();
+setInterval(fetchCurrentRound, 1000);  // Refresh round info every second
 
 async function fetchWalletBalance() {
   try {
@@ -201,6 +258,7 @@ async function fetchCurrentRound() {
     const res = await fetch(`${apiUrl}/api/rounds`);
     const rounds = await res.json();
     if (rounds.length === 0) return;
+
     const round = rounds[0];
     currentRoundId = round.roundId;
     document.getElementById("roundId").innerText = round.roundId;
@@ -217,36 +275,56 @@ async function fetchCurrentRound() {
       const minutes = String(Math.floor(remaining / 60)).padStart(2, '0');
       const seconds = String(remaining % 60).padStart(2, '0');
       document.getElementById("timeDigits").innerText = `${minutes}:${seconds}`;
-      bettingClosed = remaining <= 5;
+      if (remaining <= 5) bettingClosed = true;
+      else bettingClosed = false;
     }
   } catch (err) {
     console.error("Round Fetch Failed:", err);
   }
 }
 
-// Auto Refreshing Data
-fetchWalletBalance();
-fetchCurrentRound();
-setInterval(fetchCurrentRound, 1000);
+function selectColor(color) {
+  if (bettingClosed) return alert("Betting Closed!");
+  placeBet({ colorBet: color });
+}
+
+function selectNumber(number) {
+  if (bettingClosed) return alert("Betting Closed!");
+  placeBet({ numberBet: number });
+}
+
+function selectMultiplier(multiplier) {
+  alert(`Multiplier ${multiplier} selected (functionality coming soon)`);
+}
+
+async function placeBet(betData) {
+  try {
+    const amount = 1;  // For now, fixed amount. Can be changed to user input.
+    const payload = {
+      email: currentEmail,
+      roundId: currentRoundId,
+      amount,
+      ...betData
+    };
+    const res = await fetch(`${apiUrl}/api/bets`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Bet Failed!");
+
+    alert("✅ Bet Placed!");
+    fetchWalletBalance();  // Update wallet after bet
+
+  } catch (err) {
+    console.error("Place Bet Error:", err);
+    alert(err.message);
+  }
+}
 </script>
 
-<style>
-/* Popup Styling */
-.bet-popup {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(0,0,0,0.8);
-  padding: 20px;
-  display: flex; justify-content: center; align-items: center;
-}
-.bet-popup-content {
-  background: #fff; padding: 20px; border-radius: 10px;
-  width: 80%; max-width: 300px; text-align: center;
-}
-.bet-popup.hidden { display: none; }
 
-/* Existing Styles (Keep from your current CSS file) */
-</style>
 
 </body>
 </html>
