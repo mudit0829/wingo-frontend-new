@@ -191,6 +191,76 @@ body {
   font-weight: bold;
 }
 
+/* Color Betting Buttons */
+.color-betting-section {
+  display: flex;
+  justify-content: space-around;
+  margin: 15px 0;
+}
+
+.color-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.color-btn.green { background: #2ecc71; }
+.color-btn.violet { background: #9b59b6; }
+.color-btn.red { background: #e74c3c; }
+
+/* Number Balls Grid */
+.number-balls-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  justify-items: center;
+  margin: 10px 0;
+}
+
+.number-balls-grid img {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.number-balls-grid img:hover {
+  transform: scale(1.1);
+}
+
+/* Multipliers Row */
+.multipliers-row {
+  display: flex;
+  justify-content: space-around;
+  margin: 15px 0;
+}
+
+.multiplier-btn {
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #2e2e2e;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.multiplier-btn.active {
+  background: #2ecc71;
+  color: #000;
+  font-weight: bold;
+}
+
+.multiplier-btn.random {
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+}
+
+
 .round-id {
   font-size: 10px;
   opacity: 0.6;
