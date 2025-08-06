@@ -106,3 +106,92 @@ body {
   cursor: pointer;
   font-weight: bold;
 }
+/* Round Tabs */
+.round-tabs {
+  display: flex;
+  justify-content: space-around;
+  background: #2e2e2e;
+  padding: 10px 0;
+}
+
+.tab {
+  text-align: center;
+  color: #ccc;
+  font-size: 12px;
+}
+
+.tab img {
+  width: 50px;
+  height: 50px;
+}
+
+.tab.active {
+  background: url('assets/hot-bg.png') no-repeat center;
+  background-size: cover;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 5px;
+}
+
+/* Timer Section */
+.timer-section {
+  margin: 20px auto;
+  width: 90%;
+  max-width: 350px;
+  background: url('assets/timer-bg.png') no-repeat center;
+  background-size: cover;
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #000;
+}
+
+/* Left Side - How to Play */
+.how-to-play {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.how-to-play-btn {
+  background: #f0d17c;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 12px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.game-type {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Right Side - Timer & Round Info */
+.timer-info {
+  text-align: right;
+}
+
+.timer-balls img {
+  width: 30px;
+  margin: 0 2px;
+}
+
+.time-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #e67e22;
+}
+
+.time-digits {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.round-id {
+  font-size: 10px;
+  opacity: 0.6;
+}
