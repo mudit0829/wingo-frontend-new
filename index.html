@@ -107,6 +107,127 @@
   <button class="multiplier-btn" onclick="selectMultiplier('X50')">X50</button>
   <button class="multiplier-btn" onclick="selectMultiplier('X100')">X100</button>
 </div>
+  <!-- Phase 4: History Tabs -->
+<div class="history-tabs">
+  <button class="tab-btn active" onclick="showTab('gameHistory')">Game history</button>
+  <button class="tab-btn" onclick="showTab('chart')">Chart</button>
+  <button class="tab-btn" onclick="showTab('myHistory')">My history</button>
+</div>
+
+<!-- Game History Section -->
+<div class="tab-content" id="gameHistory">
+  <table class="history-table">
+    <tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr>
+    <tr><td>20250806100051046</td><td>2</td><td>Small</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051045</td><td>3</td><td>Small</td><td><span class="dot green"></span></td></tr>
+    <tr><td>20250806100051044</td><td>6</td><td>Big</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051043</td><td>8</td><td>Big</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051042</td><td>0</td><td>Small</td><td><span class="dot red"></span> <span class="dot violet"></span></td></tr>
+    <tr><td>20250806100051041</td><td>9</td><td>Big</td><td><span class="dot green"></span></td></tr>
+  </table>
+</div>
+
+<!-- Chart Section -->
+<div class="tab-content hidden" id="chart">
+  <table class="history-table">
+    <tr><th>Statistic</th><th colspan="10">(last 100 Periods)</th></tr>
+    <tr><td>Winning Numbers</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr>
+    <tr><td>Missing</td><td>0</td><td>25</td><td>2</td><td>3</td><td>10</td><td>15</td><td>4</td><td>1</td><td>5</td><td>7</td></tr>
+    <tr><td>Avg missing</td><td>8</td><td>11</td><td>6</td><td>32</td><td>7</td><td>10</td><td>6</td><td>7</td><td>13</td><td>6</td></tr>
+    <tr><td>Frequency</td><td>10</td><td>7</td><td>13</td><td>12</td><td>11</td><td>12</td><td>13</td><td>12</td><td>13</td><td>12</td></tr>
+    <tr><td>Max consecutive</td><td>1</td><td>2</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>2</td></tr>
+  </table>
+  <div class="chart-trend">
+    <!-- Simplified visual lines -->
+    <div>20250806100051048: 0 (S)</div>
+    <div>20250806100051047: 7 (B)</div>
+    <div>20250806100051046: 2 (S)</div>
+    <div>20250806100051045: 3 (S)</div>
+  </div>
+</div>
+
+<!-- My History Section -->
+<div class="tab-content hidden" id="myHistory">
+  <div class="my-history-item succeed">
+    <div class="color-box green"></div>
+    <div>
+      <div>20250806100051054</div>
+      <div>2025-08-06 14:16:51</div>
+    </div>
+    <div class="status succeed">Succeed</div>
+    <div class="amount">+₹1.96</div>
+  </div>
+  <div class="my-history-item failed">
+    <div class="color-box green"></div>
+    <div>
+      <div>20250806100051053</div>
+      <div>2025-08-06 14:16:09</div>
+    </div>
+    <div class="status failed">Failed</div>
+    <div class="amount">-₹1.00</div>
+  </div>
+  <!-- Add more history items similarly -->
+</div>
+
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+
+<style>
+  .history-tabs {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    background: #2e2e2e;
+    color: #ccc;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  .tab-btn.active { background: linear-gradient(to right, #f0d17c, #f0c14b); color: #000; }
+
+  .history-table {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .history-table th { background: #2e2e2e; color: #fff; }
+  .history-table td { padding: 5px; }
+  .dot { width: 10px; height: 10px; display: inline-block; border-radius: 50%; }
+  .dot.red { background: #e74c3c; }
+  .dot.green { background: #2ecc71; }
+  .dot.violet { background: #9b59b6; }
+
+  .chart-trend { font-size: 12px; color: #fff; }
+
+  .my-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+  }
+  .color-box { width: 30px; height: 30px; border-radius: 5px; }
+  .color-box.green { background: #2ecc71; }
+  .color-box.red { background: #e74c3c; }
+  .color-box.violet { background: #9b59b6; }
+
+  .status.succeed { color: #2ecc71; font-weight: bold; }
+  .status.failed { color: #e74c3c; font-weight: bold; }
+  .amount { font-weight: bold; }
+
+  .hidden { display: none; }
+</style>
+
 
 
 
