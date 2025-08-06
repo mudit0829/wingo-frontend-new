@@ -321,6 +321,72 @@ async function placeBet(betData) {
   }
 }
 </script>
+  <script>
+const apiUrl = "https://wingo-backend-nqk5.onrender.com";
+let currentEmail = localStorage.getItem("userEmail") || "user@example.com";
+
+// Load Histories on Page Load
+loadGameHistory();
+loadMyHistory();
+
+async function loadGameHistory() {
+  try {
+    const res = await fetch(`${apiUrl}/api/rounds`);
+    const rounds = await res.json();
+    let html = `<tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr>`;
+    rounds.slice(0, 20).forEach(round => {
+      const number = round.result || '-';
+      const size = (number >= 5) ? 'Big' : 'Small';
+      let colorClass = '';
+      if ([1,3,7,9].includes(number)) colorClass = 'green';
+      else if ([2,4,6,8].includes(number)) colorClass = 'red';
+      else if ([0,5].includes(number)) colorClass = 'violet';
+
+      html += `
+        <tr>
+          <td>${round.roundId}</td>
+          <td>${number}</td>
+          <td>${size}</td>
+          <td><span class="dot ${colorClass}"></span></td>
+        </tr>`;
+    });
+    document.getElementById("gameHistory").innerHTML = `<table class="history-table">${html}</table>`;
+  } catch (err) {
+    console.error("Failed to load Game History:", err);
+  }
+}
+
+async function loadMyHistory() {
+  try {
+    const res = await fetch(`${apiUrl}/api/bets/user/${currentEmail}`);
+    const bets = await res.json();
+    let html = '';
+    bets.slice(0, 20).forEach(bet => {
+      const result = bet.status === 'win' ? 'Succeed' : 'Failed';
+      const amountChange = bet.status === 'win' ? `+₹${bet.payout.toFixed(2)}` : `-₹${bet.amount.toFixed(2)}`;
+      let colorClass = '';
+      if (bet.colorBet === 'Green') colorClass = 'green';
+      else if (bet.colorBet === 'Red') colorClass = 'red';
+      else if (bet.colorBet === 'Violet') colorClass = 'violet';
+
+      html += `
+        <div class="my-history-item ${result.toLowerCase()}">
+          <div class="color-box ${colorClass}"></div>
+          <div>
+            <div>${bet.roundId}</div>
+            <div>${new Date(bet.timestamp).toLocaleString()}</div>
+          </div>
+          <div class="status ${result.toLowerCase()}">${result}</div>
+          <div class="amount">${amountChange}</div>
+        </div>`;
+    });
+    document.getElementById("myHistory").innerHTML = html;
+  } catch (err) {
+    console.error("Failed to load My History:", err);
+  }
+}
+</script>
+
 
 
 
