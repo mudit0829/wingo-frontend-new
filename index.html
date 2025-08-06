@@ -33,6 +33,7 @@
   <button class="detail-btn">Detail</button>
 </div>
 
+  <!-- Round Selection Tabs -->
 <div class="round-tabs">
   <div class="tab active">
     <img src="assets/clock-active.png" alt="WinGo 30s">
@@ -52,8 +53,10 @@
   </div>
 </div>
 
+<!-- Timer & Round Info Card -->
 <div class="timer-section">
   <div class="how-to-play">
+    <!-- No icon, just text for now -->
     <button class="how-to-play-btn">How to play</button>
     <div class="game-type">WinGo 30sec</div>
   </div>
@@ -73,12 +76,14 @@
   </div>
 </div>
 
+  <!-- Phase 3: Color Betting Section -->
 <div class="color-betting-section">
   <button class="color-btn green" onclick="selectColor('Green')">Green</button>
   <button class="color-btn violet" onclick="selectColor('Violet')">Violet</button>
   <button class="color-btn red" onclick="selectColor('Red')">Red</button>
 </div>
 
+<!-- Number Balls Grid -->
 <div class="number-balls-grid">
   <img src="assets/ball-0.png" alt="0" onclick="selectNumber(0)">
   <img src="assets/ball-1.png" alt="1" onclick="selectNumber(1)">
@@ -92,6 +97,7 @@
   <img src="assets/ball-9.png" alt="9" onclick="selectNumber(9)">
 </div>
 
+<!-- Multipliers Row -->
 <div class="multipliers-row">
   <button class="multiplier-btn random" onclick="selectMultiplier('Random')">Random</button>
   <button class="multiplier-btn active" onclick="selectMultiplier('X1')">X1</button>
@@ -101,18 +107,23 @@
   <button class="multiplier-btn" onclick="selectMultiplier('X50')">X50</button>
   <button class="multiplier-btn" onclick="selectMultiplier('X100')">X100</button>
 </div>
-
+  <!-- Phase 4: History Tabs -->
 <div class="history-tabs">
   <button class="tab-btn active" onclick="showTab('gameHistory')">Game history</button>
   <button class="tab-btn" onclick="showTab('chart')">Chart</button>
   <button class="tab-btn" onclick="showTab('myHistory')">My history</button>
+</div>
+
 <!-- Game History Section -->
 <div class="tab-content" id="gameHistory">
   <table class="history-table">
-    <!-- Table will be dynamically filled by JS -->
-    <tbody id="gameHistoryTable">
-      <!-- Filled by JS -->
-    </tbody>
+    <tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr>
+    <tr><td>20250806100051046</td><td>2</td><td>Small</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051045</td><td>3</td><td>Small</td><td><span class="dot green"></span></td></tr>
+    <tr><td>20250806100051044</td><td>6</td><td>Big</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051043</td><td>8</td><td>Big</td><td><span class="dot red"></span></td></tr>
+    <tr><td>20250806100051042</td><td>0</td><td>Small</td><td><span class="dot red"></span> <span class="dot violet"></span></td></tr>
+    <tr><td>20250806100051041</td><td>9</td><td>Big</td><td><span class="dot green"></span></td></tr>
   </table>
 </div>
 
@@ -127,6 +138,7 @@
     <tr><td>Max consecutive</td><td>1</td><td>2</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>1</td><td>2</td><td>2</td></tr>
   </table>
   <div class="chart-trend">
+    <!-- Simplified visual lines -->
     <div>20250806100051048: 0 (S)</div>
     <div>20250806100051047: 7 (B)</div>
     <div>20250806100051046: 2 (S)</div>
@@ -136,31 +148,97 @@
 
 <!-- My History Section -->
 <div class="tab-content hidden" id="myHistory">
-  <div id="myHistoryContent">
-    <!-- Filled by JS -->
+  <div class="my-history-item succeed">
+    <div class="color-box green"></div>
+    <div>
+      <div>20250806100051054</div>
+      <div>2025-08-06 14:16:51</div>
+    </div>
+    <div class="status succeed">Succeed</div>
+    <div class="amount">+₹1.96</div>
   </div>
+  <div class="my-history-item failed">
+    <div class="color-box green"></div>
+    <div>
+      <div>20250806100051053</div>
+      <div>2025-08-06 14:16:09</div>
+    </div>
+    <div class="status failed">Failed</div>
+    <div class="amount">-₹1.00</div>
+  </div>
+  <!-- Add more history items similarly -->
 </div>
 
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+
+<style>
+  .history-tabs {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    background: #2e2e2e;
+    color: #ccc;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  .tab-btn.active { background: linear-gradient(to right, #f0d17c, #f0c14b); color: #000; }
+
+  .history-table {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .history-table th { background: #2e2e2e; color: #fff; }
+  .history-table td { padding: 5px; }
+  .dot { width: 10px; height: 10px; display: inline-block; border-radius: 50%; }
+  .dot.red { background: #e74c3c; }
+  .dot.green { background: #2ecc71; }
+  .dot.violet { background: #9b59b6; }
+
+  .chart-trend { font-size: 12px; color: #fff; }
+
+  .my-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #444;
+  }
+  .color-box { width: 30px; height: 30px; border-radius: 5px; }
+  .color-box.green { background: #2ecc71; }
+  .color-box.red { background: #e74c3c; }
+  .color-box.violet { background: #9b59b6; }
+
+  .status.succeed { color: #2ecc71; font-weight: bold; }
+  .status.failed { color: #e74c3c; font-weight: bold; }
+  .amount { font-weight: bold; }
+
+  .hidden { display: none; }
+</style>
 
 <script>
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 let currentEmail = localStorage.getItem("userEmail") || "user@example.com";
 let currentRoundId = "";
+let timerInterval;
 let bettingClosed = false;
 
 // Initial Load
 fetchWalletBalance();
 fetchCurrentRound();
-loadGameHistory();
-loadMyHistory();
-setInterval(fetchCurrentRound, 1000);
-
-function showTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-  document.getElementById(tabId).classList.remove('hidden');
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-}
+setInterval(fetchCurrentRound, 1000);  // Refresh round info every second
 
 async function fetchWalletBalance() {
   try {
@@ -195,7 +273,8 @@ async function fetchCurrentRound() {
       const minutes = String(Math.floor(remaining / 60)).padStart(2, '0');
       const seconds = String(remaining % 60).padStart(2, '0');
       document.getElementById("timeDigits").innerText = `${minutes}:${seconds}`;
-      bettingClosed = remaining <= 5;
+      if (remaining <= 5) bettingClosed = true;
+      else bettingClosed = false;
     }
   } catch (err) {
     console.error("Round Fetch Failed:", err);
@@ -218,7 +297,7 @@ function selectMultiplier(multiplier) {
 
 async function placeBet(betData) {
   try {
-    const amount = 1;
+    const amount = 1;  // For now, fixed amount. Can be changed to user input.
     const payload = {
       email: currentEmail,
       roundId: currentRoundId,
@@ -232,68 +311,17 @@ async function placeBet(betData) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Bet Failed!");
+
     alert("✅ Bet Placed!");
-    fetchWalletBalance();
-    loadMyHistory();
+    fetchWalletBalance();  // Update wallet after bet
+
   } catch (err) {
     console.error("Place Bet Error:", err);
     alert(err.message);
   }
 }
-
-async function loadGameHistory() {
-  try {
-    const res = await fetch(`${apiUrl}/api/rounds`);
-    const rounds = await res.json();
-    let html = `<tr><th>Period</th><th>Number</th><th>Color</th></tr>`;
-    rounds.slice(0, 20).forEach(round => {
-      const number = (round.result !== undefined) ? round.result : '-';
-      let colorClass = '';
-      if ([1,3,7,9].includes(number)) colorClass = 'green';
-      else if ([2,4,6,8].includes(number)) colorClass = 'red';
-      else if ([0,5].includes(number)) colorClass = 'violet';
-
-      html += `<tr>
-        <td>${round.roundId}</td>
-        <td>${number}</td>
-        <td><span class="dot ${colorClass}"></span></td>
-      </tr>`;
-    });
-    document.getElementById("gameHistoryTable").innerHTML = html;
-  } catch (err) {
-    console.error("Failed to load Game History:", err);
-  }
-}
-
-async function loadMyHistory() {
-  try {
-    const res = await fetch(`${apiUrl}/api/bets/user/${currentEmail}`);
-    const bets = await res.json();
-    let html = '';
-    bets.slice(0, 20).forEach(bet => {
-      const result = bet.status === 'win' ? 'Succeed' : 'Failed';
-      const amountChange = bet.status === 'win' ? `+₹${bet.payout.toFixed(2)}` : `-₹${bet.amount.toFixed(2)}`;
-      let colorClass = '';
-      if (bet.colorBet === 'Green') colorClass = 'green';
-      else if (bet.colorBet === 'Red') colorClass = 'red';
-      else if (bet.colorBet === 'Violet') colorClass = 'violet';
-
-      html += `<div class="my-history-item ${result.toLowerCase()}">
-        <div class="color-box ${colorClass}"></div>
-        <div>
-          <div>${bet.roundId}</div>
-          <div>${new Date(bet.timestamp).toLocaleString()}</div>
-        </div>
-        <div class="status ${result.toLowerCase()}">${result}</div>
-        <div class="amount">${amountChange}</div>
-      </div>`;
-    });
-    document.getElementById("myHistory").innerHTML = html;
-  } catch (err) {
-    console.error("Failed to load My History:", err);
-  }
-}
 </script>
+
 
 
 </body>
