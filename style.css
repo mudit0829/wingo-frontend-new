@@ -1,228 +1,108 @@
-/* Base Styles */
 body {
   margin: 0;
-  padding: 0;
-  background: #0D0D0D;
-  font-family: 'Poppins', sans-serif;
-  color: #FFFFFF;
-  text-align: center;
+  font-family: 'Arial', sans-serif;
+  background: #2e2e2e;
+  color: #fff;
 }
 
 /* Header */
-header {
-  background: linear-gradient(90deg, #FF00FF 0%, #00FFFF 100%);
-  padding: 15px;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e1e1e;
+  padding: 10px 20px;
+}
+
+.logo {
+  width: 150px;
+}
+
+.header-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.header-icons .icon {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+/* Wallet Card */
+.wallet-card {
+  margin: 20px auto;
+  width: 90%;
+  max-width: 350px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.wallet-balance {
+  margin-bottom: 15px;
+}
+
+.balance-amount {
   font-size: 24px;
   font-weight: bold;
-  color: #0D0D0D;
 }
 
-/* Wallet Section */
-.wallet {
+.balance-label {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.wallet-buttons {
   display: flex;
   justify-content: space-around;
-  align-items: center;
-  padding: 10px 0;
-  background-color: #1E1E1E;
-  font-size: 16px;
 }
 
-.wallet button {
-  background: #00FF85;
-  border: none;
-  color: #000;
-  padding: 8px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Round Info & Timer */
-.round-info {
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-.timer {
-  font-size: 30px;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
-/* Color Buttons */
-.color-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.color-button {
-  width: 80px;
-  height: 80px;
-  border: none;
-  border-radius: 15px;
-  font-size: 16px;
+.btn-withdraw {
+  background: #e74c3c;
   color: #fff;
-  cursor: pointer;
-  font-weight: bold;
-  transition: transform 0.2s;
-}
-
-.color-button:active {
-  transform: scale(0.95);
-}
-
-.color-red { background: #FF3131; }
-.color-green { background: #00C851; }
-.color-violet { background: #9932CC; }
-
-/* Number Grid */
-.number-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 60px);
-  justify-content: center;
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.number-button {
-  background: #333;
-  color: #fff;
-  font-size: 20px;
-  border: 2px solid #555;
-  border-radius: 12px;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.number-button:hover {
-  background: #555;
-}
-
-/* Popup */
-.popup {
-  position: fixed;
-  bottom: -100%;
-  left: 0;
-  width: 100%;
-  background: #1A1A1A;
-  color: #fff;
-  padding: 20px;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  transition: bottom 0.3s;
-  z-index: 999;
-}
-
-.popup.show { bottom: 0; }
-
-.popup h3 {
-  margin-top: 0;
-}
-
-/* Bet Options */
-.bet-options, .multiplier-options {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 10px 0;
-}
-
-.bet-options button,
-.multiplier-options button {
-  background: #222;
-  color: #00FF85;
-  border: 1px solid #444;
   padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.bet-options button:hover,
-.multiplier-options button:hover {
-  background: #333;
-}
-
-/* Action Buttons */
-.btn-primary {
-  background: #00FF85;
-  color: #000;
-  padding: 10px 30px;
+  border-radius: 20px;
   border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  margin: 10px;
-}
-
-.btn-cancel {
-  background: #FF3131;
-  color: #fff;
-  padding: 10px 30px;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  margin: 10px;
-}
-
-/* History Section */
-.history {
-  margin: 20px 0;
-  padding: 10px;
-}
-
-.history h3 {
-  margin-bottom: 10px;
-  color: #00FFFF;
-  border-bottom: 2px solid #00FFFF;
-  display: inline-block;
-  padding-bottom: 5px;
-}
-
-.history-table {
-  width: 90%;
-  margin: auto;
-  border-collapse: collapse;
   font-size: 14px;
-}
-
-.history-table th, .history-table td {
-  border: 1px solid #555;
-  padding: 8px;
-  color: #fff;
-}
-
-/* Pagination Buttons */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin: 10px 0;
-}
-
-.pagination button {
-  background: #222;
-  color: #00FFFF;
-  border: 1px solid #00FFFF;
-  padding: 5px 15px;
-  border-radius: 8px;
-  margin: 0 5px;
   cursor: pointer;
 }
 
-.pagination button:hover {
-  background: #333;
+.btn-deposit {
+  background: #2ecc71;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .color-buttons { gap: 5px; }
-  .color-button { width: 60px; height: 60px; font-size: 14px; }
-  .number-grid { grid-template-columns: repeat(5, 50px); }
-  .number-button { width: 50px; height: 50px; font-size: 18px; }
+/* Footer Message */
+.footer-message {
+  background: #1e1e1e;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.speaker-icon {
+  margin-right: 10px;
+}
+
+.detail-btn {
+  background: #f1c40f;
+  color: #000;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
 }
