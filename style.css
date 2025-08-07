@@ -582,4 +582,65 @@ header img {
 .hidden {
   display: none;
 }
+/* Betting Popup Styles */
+.bet-popup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.popup-content input {
+  width: 80%;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.popup-content button {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background-color: #222;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.popup-content button:hover {
+  background-color: #444;
+}
+
+.close-btn {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Background color for different bets */
+.popup-green { background-color: #ccffcc; }
+.popup-red { background-color: #ffcccc; }
+.popup-violet { background-color: #f3ccff; }
+.popup-number { background-color: #e0f7fa; }
 
