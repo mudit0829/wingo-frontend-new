@@ -8,20 +8,7 @@
 </head>
 <body>
 
-  <!-- Bet Popup Modal -->
-<div id="betModal" class="bet-modal hidden">
-  <div class="bet-modal-content">
-    <span class="close-btn" id="closeBetModal">&times;</span>
-    <h2>Place Your Bet</h2>
-    <p id="selectedBetTypeText"></p>
-    <label for="betAmount">Enter Bet Amount:</label>
-    <input type="number" id="betAmount" placeholder="Enter amount" min="1" />
-    <button id="confirmBetBtn">Confirm Bet</button>
-  </div>
-</div>
-
-
-<div class="header">
+ <div class="header">
   <img src="assets/logo.png" alt="Game Logo" class="logo">
   <div class="header-icons">
     <img src="assets/user-icon.png" alt="User" class="icon">
@@ -181,6 +168,18 @@
   </div>
   <!-- Add more history items similarly -->
 </div>
+
+  <!-- Betting Popup -->
+<div id="betPopup" class="bet-popup">
+  <div class="popup-content" id="popupContent">
+    <span class="close-btn" onclick="closeBetPopup()">&times;</span>
+    <h2 id="betTitle">Place Your Bet</h2>
+    <p>You selected: <span id="selectedBetValue"></span></p>
+    <input type="number" id="betAmount" placeholder="Enter amount" min="1" />
+    <button onclick="confirmBet()">Confirm Bet</button>
+  </div>
+</div>
+
   
 
 <script>
@@ -337,36 +336,64 @@ async function placeBet(betData) {
 </script>
   
 <script>
-  let selectedBetType = '';
+  let selectedValue = '';
 
-  // Open popup on click of any color or number
-  document.querySelectorAll('.color-option, .number-option').forEach(btn => {
-    btn.addEventListener('click', function () {
-      selectedBetType = this.getAttribute('data-value');
-      document.getElementById('selectedBetTypeText').textContent = `You selected: ${selectedBetType}`;
-      document.getElementById('betModal').classList.remove('hidden');
-    });
-  });
+  function openBetPopup(value) {
+    selectedValue = value;
+    document.getElementById("selectedBetValue").innerText = value;
+    document.getElementById("betPopup").style.display = "block";
+  }
 
-  // Close modal
-  document.getElementById('closeBetModal').addEventListener('click', function () {
-    document.getElementById('betModal').classList.add('hidden');
-    document.getElementById('betAmount').value = '';
-  });
+  function closeBetPopup() {
+    document.getElementById("betPopup").style.display = "none";
+    selectedValue = '';
+    document.getElementById("betAmount").value = '';
+  }
 
-  // Confirm bet
-  document.getElementById('confirmBetBtn').addEventListener('click', function () {
-    const amount = document.getElementById('betAmount').value;
-    if (!amount || parseInt(amount) <= 0) {
-      alert("Please enter a valid bet amount.");
+  async function confirmBet() {
+    const amount = parseFloat(document.getElementById("betAmount").value);
+    if (!amount || amount <= 0) {
+      alert("Please enter a valid amount");
       return;
     }
 
-    // TODO: Send this to backend
-    alert(`Bet placed on ${selectedBetType} with amount Rs. ${amount}`);
-    document.getElementById('betModal').classList.add('hidden');
-    document.getElementById('betAmount').value = '';
-  });
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      alert("User not logged in");
+      return;
+    }
+
+    const roundId = window.currentRoundId || null; // store this from your game phase if needed
+
+    const betData = {
+      username: user.username,
+      roundId,
+      color: ['Red', 'Green', 'Violet'].includes(selectedValue) ? selectedValue : null,
+      number: /^[0-9]$/.test(selectedValue) ? parseInt(selectedValue) : null,
+      amount
+    };
+
+    try {
+      const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(betData)
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to place bet");
+      }
+
+      const result = await response.json();
+      alert("Bet placed successfully!");
+      closeBetPopup();
+      // Optional: refresh round data
+    } catch (err) {
+      alert(err.message || "Error placing bet");
+    }
+  }
 </script>
 
 
