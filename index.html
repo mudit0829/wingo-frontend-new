@@ -109,9 +109,9 @@
 </div>
   <!-- Phase 4: History Tabs -->
 <div class="history-tabs">
-  <button class="tab-btn active" onclick="showTab('gameHistory')">Game history</button>
-  <button class="tab-btn" onclick="showTab('chart')">Chart</button>
-  <button class="tab-btn" onclick="showTab('myHistory')">My history</button>
+<button class="tab-btn active" onclick="showTab('gameHistory', this)">Game history</button>
+<button class="tab-btn" onclick="showTab('chart', this)">Chart</button>
+<button class="tab-btn" onclick="showTab('myHistory', this)">My history</button>
 </div>
 
 <!-- Game History Section -->
@@ -170,12 +170,12 @@
 </div>
 
 <script>
-  function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.getElementById(tabId).classList.remove('hidden');
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-  }
+  function showTab(tabId, btnEl) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.getElementById(tabId).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  btnEl.classList.add('active');
+}
 </script>
 
 <style>
