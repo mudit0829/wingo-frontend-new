@@ -637,6 +637,17 @@ header img {
   font-size: 24px;
   cursor: pointer;
 }
+.color-btn.selected {
+  border: 2px solid #fff;
+  transform: scale(1.1);
+}
+
+.number-balls-grid img.selected {
+  border: 2px solid #fff;
+  border-radius: 50%;
+  transform: scale(1.1);
+}
+
 
 /* Background color for different bets */
 .popup-green { background-color: #ccffcc; }
