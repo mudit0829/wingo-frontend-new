@@ -335,6 +335,39 @@ async function placeBet(betData) {
   }
 }
 </script>
+  
+<script>
+  let selectedBetType = '';
+
+  // Open popup on click of any color or number
+  document.querySelectorAll('.color-option, .number-option').forEach(btn => {
+    btn.addEventListener('click', function () {
+      selectedBetType = this.getAttribute('data-value');
+      document.getElementById('selectedBetTypeText').textContent = `You selected: ${selectedBetType}`;
+      document.getElementById('betModal').classList.remove('hidden');
+    });
+  });
+
+  // Close modal
+  document.getElementById('closeBetModal').addEventListener('click', function () {
+    document.getElementById('betModal').classList.add('hidden');
+    document.getElementById('betAmount').value = '';
+  });
+
+  // Confirm bet
+  document.getElementById('confirmBetBtn').addEventListener('click', function () {
+    const amount = document.getElementById('betAmount').value;
+    if (!amount || parseInt(amount) <= 0) {
+      alert("Please enter a valid bet amount.");
+      return;
+    }
+
+    // TODO: Send this to backend
+    alert(`Bet placed on ${selectedBetType} with amount Rs. ${amount}`);
+    document.getElementById('betModal').classList.add('hidden');
+    document.getElementById('betAmount').value = '';
+  });
+</script>
 
 
 
