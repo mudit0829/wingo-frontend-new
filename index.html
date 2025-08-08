@@ -260,13 +260,6 @@
 </style>
 
   <script>
-/*
-  Phase 4 consolidated script:
-  - populates Game History table (keeps the table element and header)
-  - populates My History area (keeps your existing item look)
-  - robust error handling and console logs
-*/
-
 document.addEventListener('DOMContentLoaded', () => {
   initPhase4();
 });
@@ -282,27 +275,24 @@ async function initPhase4() {
   await safeCall(loadGameHistory, 'loadGameHistory');
   await safeCall(loadMyHistory, 'loadMyHistory');
 
-  // keep round updated
   setInterval(() => safeCall(fetchCurrentRound, 'fetchCurrentRound'), 1000);
 }
 
-// Helper to run and log errors
 async function safeCall(fn, name) {
   try { await fn(); } catch (err) { console.error(`${name} failed:`, err); }
 }
 
-// --- Wallet & Round (kept minimal) ---
+// --- Wallet & Round ---
 async function fetchWalletBalance() {
   try {
     const res = await fetch(`${apiUrl}/api/users/wallet/${encodeURIComponent(currentEmail)}`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const data = await res.json();
-    const balance = (typeof data.wallet !== 'undefined') ? data.wallet : (data.balance ?? 0);
+    const balance = data.wallet ?? data.balance ?? 0;
     const el = document.getElementById("walletAmount");
-    if (el) el.innerText = parseFloat(balance || 0).toFixed(2);
+    if (el) el.innerText = parseFloat(balance).toFixed(2);
   } catch (err) {
     console.error("Wallet Fetch Failed:", err);
-    // keep UI as-is but log error
   }
 }
 
@@ -311,25 +301,24 @@ async function fetchCurrentRound() {
     const res = await fetch(`${apiUrl}/api/rounds`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const rounds = await res.json();
-    if (!rounds || rounds.length === 0) return;
+    if (!rounds?.length) return;
+
     const round = rounds[0];
     currentRoundId = round.roundId || currentRoundId;
     const roundIdEl = document.getElementById("roundId");
     if (roundIdEl) roundIdEl.innerText = round.roundId ?? roundIdEl.innerText;
 
-    // timer (safe fallback)
     if (round.startTime) {
       const startTime = new Date(round.startTime).getTime();
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTime) / 1000);
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const remaining = 30 - elapsed;
       const timeEl = document.getElementById("timeDigits");
       if (timeEl) {
         if (remaining <= 0) timeEl.innerText = "00:00";
         else {
-          const minutes = String(Math.floor(remaining / 60)).padStart(2, '0');
-          const seconds = String(remaining % 60).padStart(2, '0');
-          timeEl.innerText = `${minutes}:${seconds}`;
+          const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+          const s = String(remaining % 60).padStart(2, '0');
+          timeEl.innerText = `${m}:${s}`;
         }
       }
     }
@@ -338,26 +327,30 @@ async function fetchCurrentRound() {
   }
 }
 
-// -------------------
-// Game History
-// -------------------
+// --- Game History ---
 async function loadGameHistory() {
   const container = document.getElementById('gameHistory');
   if (!container) return;
   try {
     const res = await fetch(`${apiUrl}/api/rounds`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    const rounds = await res.json();
+    let rounds = await res.json();
 
-    renderGameHistory(container, rounds || []);
+    // Remove duplicates by roundId
+    const seen = new Set();
+    rounds = rounds.filter(r => {
+      if (seen.has(r.roundId)) return false;
+      seen.add(r.roundId);
+      return true;
+    });
+
+    renderGameHistory(container, rounds);
   } catch (err) {
-    console.error("Failed to load Game History:", err);
-    showGameHistoryError(container, err);
+    container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load game history: ${err.message}</div>`;
   }
 }
 
 function renderGameHistory(container, rounds) {
-  // Keep or create the table element with the header (to preserve design)
   let table = container.querySelector('.history-table');
   if (!table) {
     table = document.createElement('table');
@@ -366,118 +359,81 @@ function renderGameHistory(container, rounds) {
     container.innerHTML = '';
     container.appendChild(table);
   } else {
-    // remove existing data rows (keep header row)
-    const rows = Array.from(table.querySelectorAll('tr'));
-    rows.slice(1).forEach(r => r.remove());
+    table.querySelectorAll('tr:not(:first-child)').forEach(r => r.remove());
   }
 
-  // build rows
   const fragment = document.createDocumentFragment();
   rounds.slice(0, 20).forEach(r => {
     const row = document.createElement('tr');
 
-    const period = r.roundId ?? '-';
-    const number = extractRoundNumber(r);
-    // Big/Small column left as '-' (you said it's not required)
-    const bigSmall = '-';
-    const colorClass = extractRoundColorClass(r, number);
+    const number = r.resultNumber ?? '-';
+    const colorClass = (r.resultColor || '').toLowerCase();
 
-    const tdPeriod = document.createElement('td'); tdPeriod.textContent = period;
-    const tdNumber = document.createElement('td'); tdNumber.textContent = (number !== null && number !== undefined) ? number : '-';
-    const tdBS = document.createElement('td'); tdBS.textContent = bigSmall;
-    const tdColor = document.createElement('td'); tdColor.innerHTML = `<span class="dot ${colorClass}"></span>`;
-
-    row.appendChild(tdPeriod);
-    row.appendChild(tdNumber);
-    row.appendChild(tdBS);
-    row.appendChild(tdColor);
-
+    row.innerHTML = `
+      <td>${r.roundId ?? '-'}</td>
+      <td>${number}</td>
+      <td>-</td>
+      <td><span class="dot ${colorClass}"></span></td>
+    `;
     fragment.appendChild(row);
   });
 
   table.appendChild(fragment);
 }
 
-function showGameHistoryError(container, err) {
-  container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load game history: ${err.message}</div>`;
-}
-
-function extractRoundNumber(r) {
-  // tolerant extraction: backend may use different keys
-  return (r.resultNumber ?? r.result ?? r.winningNumber ?? r.number ?? null);
-}
-
-function extractRoundColorClass(r, number) {
-  // Prefer explicit color if backend provides
-  const explicit = (r.resultColor || r.color || r.result_color || r.winningColor);
-  if (explicit) return String(explicit).toLowerCase();
-
-  // fallback color mapping by number (if number exists)
-  if (number === 0 || number === 5) return 'violet';
-  if ([1,3,7,9].includes(Number(number))) return 'green';
-  if ([2,4,6,8].includes(Number(number))) return 'red';
-  return ''; // unknown
-}
-
-// -------------------
-// My History
-// -------------------
+// --- My History ---
 async function loadMyHistory() {
   const container = document.getElementById('myHistory');
   if (!container) return;
   try {
-    const res = await fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    const bets = await res.json();
-    renderMyHistory(container, bets || []);
+    const [betsRes, roundsRes] = await Promise.all([
+      fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`),
+      fetch(`${apiUrl}/api/rounds`)
+    ]);
+    if (!betsRes.ok) throw new Error(`Bets: ${betsRes.status} ${betsRes.statusText}`);
+    if (!roundsRes.ok) throw new Error(`Rounds: ${roundsRes.status} ${roundsRes.statusText}`);
+
+    const bets = await betsRes.json();
+    const rounds = await roundsRes.json();
+    const roundMap = new Map(rounds.map(r => [r.roundId, r]));
+
+    renderMyHistory(container, bets, roundMap);
   } catch (err) {
-    console.error("Failed to load My History:", err);
-    showMyHistoryError(container, err);
+    container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load your history: ${err.message}</div>`;
   }
 }
 
-function renderMyHistory(container, bets) {
-  container.innerHTML = ''; // clear demo items
+function renderMyHistory(container, bets, roundMap) {
+  container.innerHTML = '';
 
-  if (!Array.isArray(bets) || bets.length === 0) {
+  if (!bets?.length) {
     container.innerHTML = `<div style="padding:12px;color:#ccc">No bets found.</div>`;
     return;
   }
 
-  // show most recent 20
   bets.slice(0, 20).forEach(bet => {
+    const result = roundMap.get(bet.roundId) || {};
+    const number = result.resultNumber ?? '-';
+    const colorClass = (result.resultColor || bet.colorBet || '').toLowerCase();
+    const isWin = bet.win === true;
+    const amount = isWin ? (bet.netAmount ?? 0) : (bet.amount ?? 0);
+    const amountText = `${isWin ? '+' : '-'}₹${parseFloat(amount).toFixed(2)}`;
+
     const div = document.createElement('div');
-    const isWin = (bet.win === true) || (bet.status && String(bet.status).toLowerCase().includes('win')) || (bet.result === 'win');
-
-    const colorClass = (bet.colorBet || bet.color || bet.color_choice || '').toString().toLowerCase();
-    const amountText = isWin ? `+₹${(bet.payout ?? bet.winAmount ?? 0).toFixed ? (bet.payout ?? bet.winAmount ?? 0).toFixed(2) : (bet.payout ?? bet.winAmount ?? 0)}` : `-₹${(bet.amount ?? 0).toFixed ? (bet.amount ?? 0).toFixed(2) : (bet.amount ?? 0)}`;
-
-    div.className = 'my-history-item ' + (isWin ? 'succeed' : 'failed');
+    div.className = `my-history-item ${isWin ? 'succeed' : 'failed'}`;
     div.innerHTML = `
-      <div class="color-box ${colorClass || 'green'}"></div>
+      <div class="color-box ${colorClass}"></div>
       <div>
         <div>${bet.roundId ?? '-'}</div>
-        <div>${bet.timestamp ? new Date(bet.timestamp).toLocaleString() : (bet.createdAt ? new Date(bet.createdAt).toLocaleString() : '-')}</div>
+        <div>${bet.timestamp ? new Date(bet.timestamp).toLocaleString() : '-'}</div>
       </div>
       <div class="status ${isWin ? 'succeed' : 'failed'}">${isWin ? 'Succeed' : 'Failed'}</div>
-      <div class="amount">${amountText}</div>
+      <div class="amount" style="color:${isWin ? '#4CAF50' : '#FF5252'}">${amountText}</div>
     `;
     container.appendChild(div);
   });
 }
-
-function showMyHistoryError(container, err) {
-  container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load your history: ${err.message}</div>`;
-}
-
-// -------------------
-// NOTE: don't change the existing tab/showTab code in HTML
-// -------------------
 </script>
-
-
-
-
 
 </body>
 </html>
