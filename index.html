@@ -257,6 +257,8 @@
 </style>
 
 <script>
+/* ---------------- BETTING POPUP ---------------- */
+
 // Show bet popup from bottom
 function showBetPopup(type, value) {
     const popup = document.getElementById("betPopup");
@@ -329,6 +331,8 @@ async function placeBet() {
     }
 }
 
+/* ---------------- INIT & GLOBALS ---------------- */
+
 document.addEventListener('DOMContentLoaded', () => {
   initPhase4();
 });
@@ -337,7 +341,7 @@ const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
 let currentRoundId = "";
 
-// --- Init ---
+/* ---------------- INIT ---------------- */
 async function initPhase4() {
   await safeCall(fetchWalletBalance, 'fetchWalletBalance');
   await safeCall(fetchCurrentRound, 'fetchCurrentRound');
@@ -357,7 +361,7 @@ async function safeCall(fn, name) {
   }
 }
 
-// --- Wallet ---
+/* ---------------- WALLET ---------------- */
 async function fetchWalletBalance() {
   try {
     const res = await fetch(`${apiUrl}/api/users/wallet/${encodeURIComponent(currentEmail)}`);
@@ -371,7 +375,7 @@ async function fetchWalletBalance() {
   }
 }
 
-// --- Round / Timer ---
+/* ---------------- ROUND / TIMER ---------------- */
 async function fetchCurrentRound() {
   try {
     const res = await fetch(`${apiUrl}/api/rounds`);
@@ -404,7 +408,7 @@ async function fetchCurrentRound() {
   }
 }
 
-// --- Game History ---
+/* ---------------- GAME HISTORY ---------------- */
 async function loadGameHistory() {
   const container = document.getElementById('gameHistory');
   if (!container) return;
@@ -448,7 +452,7 @@ function renderGameHistory(container, rounds) {
   });
 }
 
-// --- My History ---
+/* ---------------- MY HISTORY ---------------- */
 async function loadMyHistory() {
   const container = document.getElementById('myHistory');
   if (!container) return;
@@ -505,46 +509,16 @@ function renderMyHistory(container, bets, roundMap) {
       div.innerHTML = `
         <div class="color-box ${isNumberBet ? 'number-bet' : displayValue.toLowerCase()}">
           ${isNumberBet ? displayValue : ''}
-
-   
-let selectedColor = null;
-let selectedNumber = null;
-
-function selectColor(color) {
-    selectedColor = color;
-    openBetPopup(`You selected color: ${color}`);
-}
-
-function selectNumber(number) {
-    selectedNumber = number;
-    openBetPopup(`You selected number: ${number}`);
-}
-
-function openBetPopup(message) {
-    const popup = document.getElementById("betPopup");
-    const popupMessage = document.getElementById("popupMessage");
-
-    popupMessage.textContent = message;
-    popup.classList.add("show");
-
-    // Close when clicking outside the popup
-    document.addEventListener("click", function handler(e) {
-        if (!popup.contains(e.target)) {
-            popup.classList.remove("show");
-            document.removeEventListener("click", handler);
-        }
+        </div>
+        <div class="details">
+          <div>Round: ${roundId}</div>
+          <div>Bet: ${displayValue}</div>
+          <div>Amount: ${amountText}</div>
+        </div>
+      `;
+      container.appendChild(div);
     });
-}
-
-// Function to place bet (will later call backend API)
-function placeBet() {
-    const betAmount = document.getElementById("betAmount").value;
-    if (!betAmount) {
-        alert("Please enter a bet amount");
-        return;
-    }
-    alert(`Bet placed: ${selectedColor || selectedNumber} with amount ₹${betAmount}`);
-    document.getElementById("betPopup").classList.remove("show");
+  });
 }
 </script>
 
