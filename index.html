@@ -258,19 +258,26 @@
 </style>
 
 <script>
-
 // Show bet popup from bottom
 function showBetPopup(type, value) {
     const popup = document.getElementById("betPopup");
-    document.getElementById("betType").value = type;
-    document.getElementById("betValue").value = value;
-    document.getElementById("betAmount").value = "";
-    popup.classList.add("show"); // CSS handles sliding up
+
+    const betTypeEl = document.getElementById("betType");
+    if (betTypeEl) betTypeEl.value = type;
+
+    const betValueEl = document.getElementById("betValue");
+    if (betValueEl) betValueEl.value = value;
+
+    const betAmountEl = document.getElementById("betAmount");
+    if (betAmountEl) betAmountEl.value = "";
+
+    if (popup) popup.classList.add("show"); // CSS handles sliding up
 }
 
 // Hide popup
 function hideBetPopup() {
-    document.getElementById("betPopup").classList.remove("show");
+    const popup = document.getElementById("betPopup");
+    if (popup) popup.classList.remove("show");
 }
 
 // Called when color button is clicked
@@ -286,9 +293,9 @@ function selectNumber(number) {
 // Place bet API
 async function placeBet() {
     const token = localStorage.getItem("token");
-    const betType = document.getElementById("betType").value;
-    const betValue = document.getElementById("betValue").value;
-    const amount = document.getElementById("betAmount").value;
+    const betType = document.getElementById("betType")?.value;
+    const betValue = document.getElementById("betValue")?.value;
+    const amount = document.getElementById("betAmount")?.value;
 
     if (!amount || isNaN(amount) || amount <= 0) {
         alert("Please enter a valid bet amount");
@@ -472,7 +479,6 @@ function renderMyHistory(container, bets, roundMap) {
     return;
   }
 
-  // Group bets by roundId
   const grouped = {};
   bets.forEach(bet => {
     if (!grouped[bet.roundId]) grouped[bet.roundId] = [];
@@ -500,19 +506,7 @@ function renderMyHistory(container, bets, roundMap) {
       div.innerHTML = `
         <div class="color-box ${isNumberBet ? 'number-bet' : displayValue.toLowerCase()}">
           ${isNumberBet ? displayValue : ''}
-        </div>
-        <div>
-          <div>${roundId}</div>
-          <div>${bet.timestamp ? new Date(bet.timestamp).toLocaleString() : '-'}</div>
-        </div>
-        <div class="status ${isWin ? 'succeed' : 'failed'}">${isWin ? 'Succeed' : 'Failed'}</div>
-        <div class="amount" style="color:${isWin ? '#4CAF50' : '#FF5252'}">${amountText}</div>
-      `;
-      container.appendChild(div);
-    });
-  });
-}
-</script>
+        <
 
 </body>
 </html>
