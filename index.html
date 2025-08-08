@@ -313,49 +313,54 @@ function selectNumber(number) {
 
 /* Post bet to backend */
 async function placeBet() {
-  const amountEl = document.getElementById('betAmount');
-  const amount = amountEl ? Number(amountEl.value) : 0;
-
-  if (!amount || isNaN(amount) || amount <= 0) {
-    alert('Please enter a valid bet amount');
-    return;
-  }
-
-  // Ensure we have a selection
-  if (!selectedBetType || selectedBetValue === null || selectedBetValue === undefined) {
-    alert('No bet selected');
-    return;
-  }
-
-  const token = localStorage.getItem('token') || '';
-
-  try {
-    const res = await fetch(`${apiUrl}/api/bets`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify({
-        type: selectedBetType,
-        value: selectedBetValue,
-        amount: amount
-      })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      alert(data.message || 'Bet placed successfully!');
-      hideBetPopup();
-      // refresh user's history (your code provides loadMyHistory)
-      if (typeof loadMyHistory === 'function') safeCall(loadMyHistory, 'loadMyHistory');
-    } else {
-      alert(data.message || 'Failed to place bet');
+    const betAmount = document.getElementById("betAmount").value;
+    if (!betAmount || betAmount <= 0) {
+        alert("Please enter a valid bet amount.");
+        return;
     }
-  } catch (err) {
-    console.error('Place Bet error:', err);
-    alert('Error placing bet');
-  }
+
+    const email = localStorage.getItem("email"); // make sure you store this at login
+    const roundId = localStorage.getItem("currentRoundId"); // store this when fetching round data
+    const selectedColor = localStorage.getItem("selectedColor"); // or null if betting on number
+    const selectedNumber = localStorage.getItem("selectedNumber"); // or null if betting on color
+
+    if (!email || !roundId || (!selectedColor && selectedNumber === null)) {
+        alert("Missing bet details. Please try again.");
+        return;
+    }
+
+    const betData = {
+        email: email,
+        roundId: roundId,
+        color: selectedColor || null,
+        number: selectedNumber !== null ? selectedNumber : null,
+        amount: betAmount
+    };
+
+    try {
+        const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(betData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Bet failed:", errorData);
+            alert("Bet failed: " + (errorData.message || "Unknown error"));
+            return;
+        }
+
+        const data = await response.json();
+        console.log("Bet placed successfully:", data);
+        alert("Bet placed successfully!");
+        document.getElementById("betAmount").value = "";
+    } catch (error) {
+        console.error("Error placing bet:", error);
+        alert("Error placing bet. Please try again.");
+    }
 }
 
 /* ---------------- INIT & GLOBALS ---------------- */
