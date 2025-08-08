@@ -319,22 +319,21 @@ async function placeBet() {
         return;
     }
 
-    const email = localStorage.getItem("email"); // make sure you store this at login
-    const roundId = localStorage.getItem("currentRoundId"); // store this when fetching round data
-    const selectedColor = localStorage.getItem("selectedColor"); // or null if betting on number
-    const selectedNumber = localStorage.getItem("selectedNumber"); // or null if betting on color
+    const email = localStorage.getItem("email"); // must be set at login
+    const roundId = localStorage.getItem("currentRoundId"); // must be set when round data fetched
 
-    if (!email || !roundId || (!selectedColor && selectedNumber === null)) {
-        alert("Missing bet details. Please try again.");
+    if (!email || !roundId || !selectedBetType || selectedBetValue === null) {
+        alert("Missing required field, please try again");
         return;
     }
 
+    // Prepare correct shape for backend
     const betData = {
         email: email,
         roundId: roundId,
-        color: selectedColor || null,
-        number: selectedNumber !== null ? selectedNumber : null,
-        amount: betAmount
+        amount: Number(betAmount),
+        colorBet: selectedBetType === 'color' ? selectedBetValue : null,
+        numberBet: selectedBetType === 'number' ? Number(selectedBetValue) : null
     };
 
     try {
@@ -346,17 +345,17 @@ async function placeBet() {
             body: JSON.stringify(betData)
         });
 
+        const data = await response.json();
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Bet failed:", errorData);
-            alert("Bet failed: " + (errorData.message || "Unknown error"));
+            console.error("Bet failed:", data);
+            alert("Bet failed: " + (data.message || "Unknown error"));
             return;
         }
 
-        const data = await response.json();
         console.log("Bet placed successfully:", data);
-        alert("Bet placed successfully!");
+        alert(`Bet placed successfully on ${selectedBetValue} for ₹${betAmount}`);
         document.getElementById("betAmount").value = "";
+        hideBetPopup();
     } catch (error) {
         console.error("Error placing bet:", error);
         alert("Error placing bet. Please try again.");
@@ -370,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
-const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
+const currentEmail = localStorage.getItem("email") || "user@example.com";
 let currentRoundId = "";
 
 /* ---------------- INIT ---------------- */
@@ -417,6 +416,8 @@ async function fetchCurrentRound() {
 
     const round = rounds[0];
     currentRoundId = round.roundId || currentRoundId;
+    localStorage.setItem("currentRoundId", currentRoundId); // store for bets
+
     const roundIdEl = document.getElementById("roundId");
     if (roundIdEl) roundIdEl.innerText = round.roundId ?? roundIdEl.innerText;
 
