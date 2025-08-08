@@ -272,76 +272,90 @@
 <script>
 /* ---------------- BETTING POPUP ---------------- */
 
-// Show bet popup from bottom
+/* ---------- BETTING POPUP JS (replace existing betting functions) ---------- */
+
+let selectedBetType = null;
+let selectedBetValue = null;
+
 function showBetPopup(type, value) {
-    const popup = document.getElementById("betPopup");
+  selectedBetType = type;
+  selectedBetValue = value;
 
-    const betTypeEl = document.getElementById("betType");
-    if (betTypeEl) betTypeEl.value = type;
+  const popup = document.getElementById('betPopup');
+  const title = document.getElementById('popupTitle');
+  const msg   = document.getElementById('popupMessage');
+  const amt   = document.getElementById('betAmount');
 
-    const betValueEl = document.getElementById("betValue");
-    if (betValueEl) betValueEl.value = value;
+  if (title) title.textContent = (type === 'color') ? `Bet on color: ${value}` : `Bet on number: ${value}`;
+  if (msg)   msg.textContent = `You selected: ${value}`;
+  if (amt)   amt.value = '';
 
-    const betAmountEl = document.getElementById("betAmount");
-    if (betAmountEl) betAmountEl.value = "";
-
-    if (popup) popup.classList.add("show"); // CSS handles sliding up
+  if (popup) popup.classList.add('show');
 }
 
-// Hide popup
 function hideBetPopup() {
-    const popup = document.getElementById("betPopup");
-    if (popup) popup.classList.remove("show");
+  const popup = document.getElementById('betPopup');
+  if (popup) popup.classList.remove('show');
+
+  // clear selection
+  selectedBetType = null;
+  selectedBetValue = null;
 }
 
-// Called when color button is clicked
+/* Called by inline handlers in HTML */
 function selectColor(color) {
-    showBetPopup("color", color);
+  showBetPopup('color', color);
 }
 
-// Called when number button is clicked
 function selectNumber(number) {
-    showBetPopup("number", number);
+  showBetPopup('number', number);
 }
 
-// Place bet API
+/* Post bet to backend */
 async function placeBet() {
-    const token = localStorage.getItem("token");
-    const betType = document.getElementById("betType")?.value;
-    const betValue = document.getElementById("betValue")?.value;
-    const amount = document.getElementById("betAmount")?.value;
+  const amountEl = document.getElementById('betAmount');
+  const amount = amountEl ? Number(amountEl.value) : 0;
 
-    if (!amount || isNaN(amount) || amount <= 0) {
-        alert("Please enter a valid bet amount");
-        return;
+  if (!amount || isNaN(amount) || amount <= 0) {
+    alert('Please enter a valid bet amount');
+    return;
+  }
+
+  // Ensure we have a selection
+  if (!selectedBetType || selectedBetValue === null || selectedBetValue === undefined) {
+    alert('No bet selected');
+    return;
+  }
+
+  const token = localStorage.getItem('token') || '';
+
+  try {
+    const res = await fetch(`${apiUrl}/api/bets`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      body: JSON.stringify({
+        type: selectedBetType,
+        value: selectedBetValue,
+        amount: amount
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || 'Bet placed successfully!');
+      hideBetPopup();
+      // refresh user's history (your code provides loadMyHistory)
+      if (typeof loadMyHistory === 'function') safeCall(loadMyHistory, 'loadMyHistory');
+    } else {
+      alert(data.message || 'Failed to place bet');
     }
-
-    try {
-        const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                type: betType,
-                value: betValue,
-                amount: Number(amount)
-            })
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            alert("Bet placed successfully!");
-            hideBetPopup();
-            loadUserBets(); // refresh bet history
-        } else {
-            alert(data.message || "Failed to place bet");
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Error placing bet");
-    }
+  } catch (err) {
+    console.error('Place Bet error:', err);
+    alert('Error placing bet');
+  }
 }
 
 /* ---------------- INIT & GLOBALS ---------------- */
