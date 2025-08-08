@@ -258,6 +258,71 @@
 </style>
 
 <script>
+
+// Show bet popup from bottom
+function showBetPopup(type, value) {
+    const popup = document.getElementById("betPopup");
+    document.getElementById("betType").value = type;
+    document.getElementById("betValue").value = value;
+    document.getElementById("betAmount").value = "";
+    popup.classList.add("show"); // CSS handles sliding up
+}
+
+// Hide popup
+function hideBetPopup() {
+    document.getElementById("betPopup").classList.remove("show");
+}
+
+// Called when color button is clicked
+function selectColor(color) {
+    showBetPopup("color", color);
+}
+
+// Called when number button is clicked
+function selectNumber(number) {
+    showBetPopup("number", number);
+}
+
+// Place bet API
+async function placeBet() {
+    const token = localStorage.getItem("token");
+    const betType = document.getElementById("betType").value;
+    const betValue = document.getElementById("betValue").value;
+    const amount = document.getElementById("betAmount").value;
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid bet amount");
+        return;
+    }
+
+    try {
+        const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                type: betType,
+                value: betValue,
+                amount: Number(amount)
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert("Bet placed successfully!");
+            hideBetPopup();
+            loadUserBets(); // refresh bet history
+        } else {
+            alert(data.message || "Failed to place bet");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Error placing bet");
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initPhase4();
 });
