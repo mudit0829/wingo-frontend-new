@@ -177,14 +177,13 @@
 
   <!-- Betting Popup -->
 <div id="betPopup" class="bet-popup">
-  <div class="popup-content" id="popupContent">
-    <span class="close-btn" onclick="closeBetPopup()">&times;</span>
-    <h2 id="betTitle">Place Your Bet</h2>
-    <p>You selected: <span id="selectedBetValue"></span></p>
-    <input type="number" id="betAmount" placeholder="Enter amount" min="1" />
-    <button onclick="confirmBet()">Confirm Bet</button>
-  </div>
+    <div class="bet-popup-content">
+        <p id="popupMessage"></p>
+        <input type="number" id="betAmount" placeholder="Enter bet amount" />
+        <button onclick="placeBet()">Place Bet</button>
+    </div>
 </div>
+
 
   <script>
   function showTab(tabId, btnEl) {
@@ -507,6 +506,47 @@ function renderMyHistory(container, bets, roundMap) {
         <div class="color-box ${isNumberBet ? 'number-bet' : displayValue.toLowerCase()}">
           ${isNumberBet ? displayValue : ''}
         </script>
+<script>
+let selectedColor = null;
+let selectedNumber = null;
+
+function selectColor(color) {
+    selectedColor = color;
+    openBetPopup(`You selected color: ${color}`);
+}
+
+function selectNumber(number) {
+    selectedNumber = number;
+    openBetPopup(`You selected number: ${number}`);
+}
+
+function openBetPopup(message) {
+    const popup = document.getElementById("betPopup");
+    const popupMessage = document.getElementById("popupMessage");
+
+    popupMessage.textContent = message;
+    popup.classList.add("show");
+
+    // Close when clicking outside the popup
+    document.addEventListener("click", function handler(e) {
+        if (!popup.contains(e.target)) {
+            popup.classList.remove("show");
+            document.removeEventListener("click", handler);
+        }
+    });
+}
+
+// Function to place bet (will later call backend API)
+function placeBet() {
+    const betAmount = document.getElementById("betAmount").value;
+    if (!betAmount) {
+        alert("Please enter a bet amount");
+        return;
+    }
+    alert(`Bet placed: ${selectedColor || selectedNumber} with amount ₹${betAmount}`);
+    document.getElementById("betPopup").classList.remove("show");
+}
+</script>
 
 </body>
 </html>
