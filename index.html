@@ -272,8 +272,6 @@
 <script>
 /* ---------------- BETTING POPUP ---------------- */
 
-/* ---------- BETTING POPUP JS (replace existing betting functions) ---------- */
-
 let selectedBetType = null;
 let selectedBetValue = null;
 
@@ -297,7 +295,6 @@ function hideBetPopup() {
   const popup = document.getElementById('betPopup');
   if (popup) popup.classList.remove('show');
 
-  // clear selection
   selectedBetType = null;
   selectedBetValue = null;
 }
@@ -313,53 +310,51 @@ function selectNumber(number) {
 
 /* Post bet to backend */
 async function placeBet() {
-    const betAmount = document.getElementById("betAmount").value;
-    if (!betAmount || betAmount <= 0) {
-        alert("Please enter a valid bet amount.");
-        return;
+  const betAmount = parseFloat(document.getElementById("betAmount").value);
+  const email = localStorage.getItem("email");
+  const roundId = localStorage.getItem("currentRoundId");
+
+  if (!betAmount || betAmount <= 0) {
+    alert("Please enter a valid bet amount.");
+    return;
+  }
+
+  if (!email || !roundId || !selectedBetType || selectedBetValue === null) {
+    alert("Missing bet details. Please try again.");
+    return;
+  }
+
+  const betData = {
+    email,
+    roundId,
+    amount: betAmount,
+    colorBet: selectedBetType === 'color' ? selectedBetValue : null,
+    numberBet: selectedBetType === 'number' ? Number(selectedBetValue) : null
+  };
+
+  try {
+    const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(betData)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Bet failed:", data);
+      alert("Bet failed: " + (data.message || "Unknown error"));
+      return;
     }
 
-    const email = localStorage.getItem("email"); // must be set at login
-    const roundId = localStorage.getItem("currentRoundId"); // must be set when round data fetched
-
-    if (!email || !roundId || !selectedBetType || selectedBetValue === null) {
-        alert("Missing required field, please try again");
-        return;
-    }
-
-    // Prepare correct shape for backend
-    const betData = {
-        email: email,
-        roundId: roundId,
-        amount: Number(betAmount),
-        colorBet: selectedBetType === 'color' ? selectedBetValue : null,
-        numberBet: selectedBetType === 'number' ? Number(selectedBetValue) : null
-    };
-
-    try {
-        const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(betData)
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-            console.error("Bet failed:", data);
-            alert("Bet failed: " + (data.message || "Unknown error"));
-            return;
-        }
-
-        console.log("Bet placed successfully:", data);
-        alert(`Bet placed successfully on ${selectedBetValue} for ₹${betAmount}`);
-        document.getElementById("betAmount").value = "";
-        hideBetPopup();
-    } catch (error) {
-        console.error("Error placing bet:", error);
-        alert("Error placing bet. Please try again.");
-    }
+    alert(`Bet placed successfully on ${selectedBetValue} for ₹${betAmount}`);
+    document.getElementById("betAmount").value = "";
+    hideBetPopup();
+    fetchWalletBalance(); // refresh wallet after placing bet
+  } catch (error) {
+    console.error("Error placing bet:", error);
+    alert("Error placing bet. Please try again.");
+  }
 }
 
 /* ---------------- INIT & GLOBALS ---------------- */
@@ -416,7 +411,7 @@ async function fetchCurrentRound() {
 
     const round = rounds[0];
     currentRoundId = round.roundId || currentRoundId;
-    localStorage.setItem("currentRoundId", currentRoundId); // store for bets
+    localStorage.setItem("currentRoundId", currentRoundId);
 
     const roundIdEl = document.getElementById("roundId");
     if (roundIdEl) roundIdEl.innerText = round.roundId ?? roundIdEl.innerText;
