@@ -299,7 +299,6 @@ function hideBetPopup() {
   selectedBetValue = null;
 }
 
-/* Called by inline handlers in HTML */
 function selectColor(color) {
   showBetPopup('color', color);
 }
@@ -308,32 +307,41 @@ function selectNumber(number) {
   showBetPopup('number', number);
 }
 
-/* Post bet to backend */
+/* Post bet to backend - fetch latest roundId first */
 async function placeBet() {
   const betAmount = parseFloat(document.getElementById("betAmount").value);
   const email = localStorage.getItem("email");
-  const roundId = localStorage.getItem("currentRoundId");
 
   if (!betAmount || betAmount <= 0) {
     alert("Please enter a valid bet amount.");
     return;
   }
 
-  if (!email || !roundId || !selectedBetType || selectedBetValue === null) {
+  if (!email || !selectedBetType || selectedBetValue === null) {
     alert("Missing bet details. Please try again.");
     return;
   }
 
-  const betData = {
-    email,
-    roundId,
-    amount: betAmount,
-    colorBet: selectedBetType === 'color' ? selectedBetValue : null,
-    numberBet: selectedBetType === 'number' ? Number(selectedBetValue) : null
-  };
-
   try {
-    const response = await fetch("https://wingo-backend-nqk5.onrender.com/api/bets", {
+    // Always fetch the current round to get the exact roundId format from backend
+    const roundRes = await fetch(`${apiUrl}/api/rounds`);
+    if (!roundRes.ok) throw new Error(`Rounds: ${roundRes.status} ${roundRes.statusText}`);
+    const rounds = await roundRes.json();
+    if (!rounds?.length) {
+      alert("Could not determine current round. Please try again.");
+      return;
+    }
+    const currentRoundId = rounds[0].roundId;
+
+    const betData = {
+      email,
+      roundId: currentRoundId,
+      amount: betAmount,
+      colorBet: selectedBetType === 'color' ? selectedBetValue : null,
+      numberBet: selectedBetType === 'number' ? Number(selectedBetValue) : null
+    };
+
+    const response = await fetch(`${apiUrl}/api/bets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(betData)
@@ -350,7 +358,7 @@ async function placeBet() {
     alert(`Bet placed successfully on ${selectedBetValue} for ₹${betAmount}`);
     document.getElementById("betAmount").value = "";
     hideBetPopup();
-    fetchWalletBalance(); // refresh wallet after placing bet
+    fetchWalletBalance();
   } catch (error) {
     console.error("Error placing bet:", error);
     alert("Error placing bet. Please try again.");
@@ -549,6 +557,7 @@ function renderMyHistory(container, bets, roundMap) {
   });
 }
 </script>
+
 
 </body>
 </html>
