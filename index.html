@@ -436,7 +436,7 @@ const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
 let currentRoundId = ""; // updated by fetchCurrentRound()
 
 /* ---------------- Popup open/close (accessibility fixes) ---------------- */
-function openBetPopup(type, choice) {
+function showBetPopup(type, choice) {
   const modal = document.getElementById('betModal');
   const header = document.getElementById('betHeader');
   const choiceText = document.getElementById('betChoiceText');
