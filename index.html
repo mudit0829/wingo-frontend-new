@@ -312,105 +312,49 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.my-history-card {
+.history-card {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  background: #1a1a1a;
-  border-radius: 10px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 5px rgb(0 0 0 / 0.5);
-  color: #ddd;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-/* Bet type colored box */
-.bet-box {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  background: #1f1f1f;
+  padding: 10px 14px;
+  margin-bottom: 8px;
   border-radius: 8px;
-  font-weight: 700;
-  font-size: 18px;
   color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  user-select: none;
-  box-shadow: 0 0 5px rgb(0 0 0 / 0.7);
-}
-
-/* Color bets */
-.bet-box.red {
-  background: #e74c3c;
-  box-shadow: 0 0 8px #e74c3c;
-}
-.bet-box.green {
-  background: #27ae60;
-  box-shadow: 0 0 8px #27ae60;
-}
-.bet-box.violet {
-  background: #8e44ad;
-  box-shadow: 0 0 8px #8e44ad;
-}
-
-/* Number bet styling */
-.bet-box.number-bet {
-  background: #34495e;
-  box-shadow: 0 0 8px #34495e;
-  font-size: 16px;
-  letter-spacing: 1.5px;
-}
-
-/* Details block */
-.my-history-details {
-  flex: 1 1 auto;
-  min-width: 160px;
   font-size: 14px;
-  line-height: 1.3;
-  color: #bbb;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  user-select: text;
 }
 
-/* Result pill */
-.my-history-result {
-  flex-shrink: 0;
-  font-weight: 700;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  min-width: 50px;
-  text-align: center;
-  user-select: none;
+.history-left .label {
+  color: #999;
+  margin-right: 4px;
 }
 
-.result-win {
-  background-color: #2ecc71;
-  color: #144d14;
-  box-shadow: 0 0 5px #2ecc71;
+.history-left .value {
+  font-weight: bold;
 }
 
-.result-loss {
-  background-color: #e74c3c;
-  color: #6e1414;
-  box-shadow: 0 0 5px #e74c3c;
+.history-right {
+  text-align: right;
 }
 
-/* Responsive tweaks */
-@media (max-width: 480px) {
-  .my-history-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .my-history-result {
-    align-self: stretch;
-    text-align: left;
-  }
+.amount.win {
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.amount.loss {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.status.win {
+  color: #4caf50;
+  font-size: 12px;
+}
+
+.status.loss {
+  color: #f44336;
+  font-size: 12px;
 }
 
 </style>
@@ -684,43 +628,56 @@ async function loadMyHistory() {
   }
 }
 
-function renderMyHistory(container, bets) {
+function renderMyHistory(container, bets, roundMap) {
   container.innerHTML = '';
 
   if (!bets?.length) {
-    container.innerHTML = `<div style="padding:16px;color:#999;font-style:italic; text-align:center;">You have not placed any bets yet.</div>`;
+    container.innerHTML = `<div style="padding:12px;color:#ccc;text-align:center">No bets found.</div>`;
     return;
   }
 
+  // Sort newest first
+  bets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
   bets.slice(0, 20).forEach(bet => {
+    const round = roundMap.get(bet.roundId);
     const isNumberBet = bet.numberBet !== undefined && bet.numberBet !== null;
-    const betValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
-    const amount = parseFloat(bet.amount ?? 0).toFixed(2);
+    const displayValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
+
     const isWin = bet.win === true;
+    const profit = bet.profit ?? 0;
+    const netAmount = isWin ? ((bet.amount ?? 0) + profit) : -(bet.amount ?? 0);
 
-    let betClass = 'bet-box ';
-    if (isNumberBet) betClass += 'number-bet';
-    else betClass += (bet.colorBet || '').toLowerCase();
+    const statusClass = isWin ? 'win' : 'loss';
+    const statusText = isWin ? 'Win' : 'Loss';
+    const amountText = `${netAmount >= 0 ? '+' : '-'}₹${Math.abs(netAmount).toFixed(2)}`;
 
-    const resultText = isWin ? 'WIN' : 'LOSS';
-    const resultClass = isWin ? 'result-win' : 'result-loss';
+    const resultColor = round?.resultColor || '';
+    const resultNumber = round?.resultNumber ?? '-';
 
-    const div = document.createElement('div');
-    div.className = 'my-history-card';
-
-    div.innerHTML = `
-      <div class="${betClass}">${isNumberBet ? betValue : ''}</div>
-      <div class="my-history-details">
-        <div><strong>Round:</strong> ${bet.roundId ?? '-'}</div>
-        <div><strong>Bet:</strong> ${betValue}</div>
-        <div><strong>Amount:</strong> ₹${amount}</div>
+    const card = document.createElement('div');
+    card.className = `history-card ${statusClass}`;
+    card.innerHTML = `
+      <div class="history-left">
+        <div class="history-round">Round: ${bet.roundId}</div>
+        <div class="history-bet">
+          <span class="label">Your Bet:</span>
+          <span class="value ${isNumberBet ? 'number-bet' : displayValue.toLowerCase()}">${displayValue}</span>
+        </div>
+        <div class="history-result">
+          <span class="label">Result:</span>
+          <span class="value ${resultColor.toLowerCase()}">${resultNumber}</span>
+        </div>
       </div>
-      <div class="my-history-result ${resultClass}">${resultText}</div>
+      <div class="history-right">
+        <div class="amount ${statusClass}">${amountText}</div>
+        <div class="status ${statusClass}">${statusText}</div>
+      </div>
     `;
-
-    container.appendChild(div);
+    container.appendChild(card);
   });
 }
+
 
 /* ---------------- Startup (polling intervals increased to avoid resource errors) ---------------- */
 async function initPhase4() {
