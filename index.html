@@ -267,6 +267,47 @@
     border-radius: 50%;
     transform: scale(1.05);
   }
+
+  .my-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-top: 8px;
+}
+
+.my-history-table th,
+.my-history-table td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.my-history-table thead {
+  background-color: #222;
+  color: #fff;
+}
+
+.my-history-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.my-history-table tbody tr.win {
+  background-color: #d4edda; /* light green */
+  color: #155724;
+  font-weight: 600;
+}
+
+.my-history-table tbody tr.lost {
+  background-color: #f8d7da; /* light red */
+  color: #721c24;
+  font-weight: 600;
+}
+
+.result-cell {
+  font-weight: 700;
+}
+
 </style>
 
 <script>
@@ -551,6 +592,7 @@ function renderGameHistory(container, rounds) {
 }
 
 /* ---------------- MY HISTORY ---------------- */
+/* ---------------- MY HISTORY (Improved) ---------------- */
 async function loadMyHistory() {
   const container = document.getElementById('myHistory');
   if (!container) return;
@@ -558,41 +600,67 @@ async function loadMyHistory() {
     const res = await fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const bets = await res.json();
-    renderMyHistory(container, bets, new Map());
+    renderMyHistory(container, bets);
   } catch (err) {
-    container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load your history: ${err.message}</div>`;
+    container.innerHTML = `<div style="padding:12px;color:#ff4d4d;font-weight:bold;">Unable to load your history: ${err.message}</div>`;
   }
 }
 
-function renderMyHistory(container, bets, roundMap) {
+function renderMyHistory(container, bets) {
   container.innerHTML = '';
 
   if (!bets?.length) {
-    container.innerHTML = `<div style="padding:12px;color:#ccc">No bets found.</div>`;
+    container.innerHTML = `<div style="padding:16px;color:#999;font-style:italic;">You have not placed any bets yet.</div>`;
     return;
   }
 
+  // Create table for clean display
+  const table = document.createElement('table');
+  table.className = 'my-history-table';
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Round</th>
+        <th>Bet Type</th>
+        <th>Bet Value</th>
+        <th>Amount (₹)</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  const tbody = table.querySelector('tbody');
+
   bets.slice(0, 20).forEach(bet => {
     const isNumberBet = bet.numberBet !== undefined && bet.numberBet !== null;
-    const displayValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
+    const betType = isNumberBet ? 'Number' : 'Color';
+    const betValue = isNumberBet ? bet.numberBet : bet.colorBet || '-';
+    const amount = parseFloat(bet.amount ?? 0).toFixed(2);
     const isWin = bet.win === true;
-    const amountText = `₹${parseFloat(bet.amount ?? 0).toFixed(2)}`;
 
-    const div = document.createElement('div');
-    div.className = `my-history-item ${isWin ? 'succeed' : 'failed'}`;
-    div.innerHTML = `
-      <div class="color-box ${isNumberBet ? 'number-bet' : (displayValue + '').toLowerCase()}">
-        ${isNumberBet ? displayValue : ''}
-      </div>
-      <div class="details">
-        <div>Round: ${bet.roundId ?? '-'}</div>
-        <div>Bet: ${displayValue}</div>
-        <div>Amount: ${amountText}</div>
-      </div>
+    // Color coding for result
+    const resultText = isWin ? 'Won' : 'Lost';
+    const resultClass = isWin ? 'win' : 'lost';
+
+    // Create row
+    const tr = document.createElement('tr');
+    tr.className = resultClass;
+
+    tr.innerHTML = `
+      <td>${bet.roundId ?? '-'}</td>
+      <td>${betType}</td>
+      <td>${betValue}</td>
+      <td>${amount}</td>
+      <td class="result-cell">${resultText}</td>
     `;
-    container.appendChild(div);
+
+    tbody.appendChild(tr);
   });
+
+  container.appendChild(table);
 }
+
 
 /* ---------------- Startup (keep existing intervals) ---------------- */
 async function initPhase4() {
