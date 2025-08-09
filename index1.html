@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WinGo Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <img src="assets/logo.png" alt="WinGo Logo">
+    </div>
+    <div class="wallet">
+      <span>Wallet: ₹<span id="wallet-balance">0</span></span>
+      <button id="logout-btn" class="btn btn-logout">Logout</button>
+    </div>
+  </header>
+
+  <!-- Game Info -->
+  <section class="game-info">
+    <div class="timer">
+      <img src="assets/timer-icon.png" alt="Timer">
+      <span>Time Left: <span id="timer-seconds">25</span>s</span>
+    </div>
+    <div class="round-id">
+      Round: <span id="current-round-id">--</span>
+    </div>
+  </section>
+
+  <!-- Bet Section -->
+  <section class="bet-section">
+    <h2>Place Your Bets</h2>
+    
+    <div class="bet-options">
+      <div class="color-bets">
+        <h3>Color Bet</h3>
+        <button class="btn bet-btn" data-color="Red">
+          <img src="assets/red.png" alt="Red">
+          Red
+        </button>
+        <button class="btn bet-btn" data-color="Green">
+          <img src="assets/green.png" alt="Green">
+          Green
+        </button>
+        <button class="btn bet-btn" data-color="Violet">
+          <img src="assets/violet.png" alt="Violet">
+          Violet
+        </button>
+      </div>
+
+      <div class="number-bets">
+        <h3>Number Bet</h3>
+        <div class="number-grid">
+          <button class="btn num-btn" data-number="0">0</button>
+          <button class="btn num-btn" data-number="1">1</button>
+          <button class="btn num-btn" data-number="2">2</button>
+          <button class="btn num-btn" data-number="3">3</button>
+          <button class="btn num-btn" data-number="4">4</button>
+          <button class="btn num-btn" data-number="5">5</button>
+          <button class="btn num-btn" data-number="6">6</button>
+          <button class="btn num-btn" data-number="7">7</button>
+          <button class="btn num-btn" data-number="8">8</button>
+          <button class="btn num-btn" data-number="9">9</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bet-amount">
+      <label for="bet-amount-input">Bet Amount (₹):</label>
+      <input type="number" id="bet-amount-input" min="1" step="1">
+    </div>
+  </section>
+
+  <!-- Game History -->
+  <section class="history-section">
+    <h2>Game History</h2>
+    <table id="history-table">
+      <thead>
+        <tr>
+          <th>Round ID</th>
+          <th>Result</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <!-- Filled dynamically -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2025 WinGo Game | All rights reserved</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
