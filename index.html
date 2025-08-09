@@ -436,27 +436,29 @@ const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
 let currentRoundId = ""; // updated by fetchCurrentRound()
 
 /* ---------------- Popup open/close (accessibility fixes) ---------------- */
-function showBetPopup(type, value) {
-  selectedBetType = type;
-  selectedBetValue = value;
+function openBetPopup(type, choice) {
+  const modal = document.getElementById('betModal');
+  const header = document.getElementById('betHeader');
+  const choiceText = document.getElementById('betChoiceText');
 
-  const popup = document.getElementById(popupElId);
-  const title = document.getElementById(popupTitleId);
-  const msg = document.getElementById(popupMessageId);
-  const amt = document.getElementById(popupAmountId);
+  // Remove old color classes
+  header.classList.remove('green', 'red');
 
-  if (title) title.textContent = (type === 'color') ? `Bet on color: ${value}` : `Bet on number: ${value}`;
-  if (msg) msg.textContent = `You selected: ${value}`;
-  if (amt) { amt.value = ''; amt.removeAttribute('aria-invalid'); }
-
-  if (popup) {
-    popup.removeAttribute('aria-hidden');
-    popup.classList.add('show');
-    if (amt) {
-      setTimeout(() => amt.focus(), 50);
-    }
+  // Set style depending on type
+  if (type === 'color' && choice.toLowerCase() === 'green') {
+    header.classList.add('green');
+  } else {
+    header.classList.add('red');
   }
+
+  choiceText.textContent = `Select ${choice}`;
+  modal.classList.remove('hidden');
 }
+
+document.getElementById('cancelBet').onclick = () => {
+  document.getElementById('betModal').classList.add('hidden');
+};
+
 
 function hideBetPopup() {
   const popup = document.getElementById(popupElId);
