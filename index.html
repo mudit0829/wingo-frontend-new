@@ -177,24 +177,57 @@
 
   <!-- Betting Popup -->
 
-<div id="betPopup" class="bet-popup" aria-hidden="true">
-  <!-- overlay (click to close) -->
-  <div class="bet-popup-overlay" onclick="hideBetPopup()"></div>
+<div id="betModal" class="bet-modal hidden">
+  <div class="bet-popup">
+    <div class="bet-header" id="betHeader">
+      <span class="bet-title">WinGo 30sec</span>
+      <div class="bet-choice" id="betChoiceText">Select Green</div>
+    </div>
 
-  <!-- sheet content -->
-  <div class="bet-popup-content" role="dialog" aria-modal="true">
-    <span class="close-btn" onclick="hideBetPopup()">&times;</span>
-    <h3 id="popupTitle">Place Your Bet</h3>
-    <p id="popupMessage" style="margin:6px 0 12px;color:#333;"></p>
+    <div class="bet-body">
+      <div class="bet-section">
+        <label>Balance</label>
+        <div class="bet-buttons">
+          <button data-balance="1">1</button>
+          <button data-balance="10">10</button>
+          <button data-balance="100">100</button>
+          <button data-balance="1000">1000</button>
+        </div>
+      </div>
 
-    <input type="number" id="betAmount" placeholder="Enter bet amount" min="1" />
+      <div class="bet-section">
+        <label>Quantity</label>
+        <div class="quantity-control">
+          <button class="qty-btn" id="qtyMinus">-</button>
+          <input type="number" id="betQty" value="1" min="1">
+          <button class="qty-btn" id="qtyPlus">+</button>
+        </div>
+      </div>
 
-    <div style="margin-top:12px; display:flex; gap:10px; justify-content:center;">
-      <button class="btn-primary" onclick="placeBet()">Place Bet</button>
-      <button class="btn-cancel" onclick="hideBetPopup()">Cancel</button>
+      <div class="bet-section">
+        <div class="bet-buttons multipliers">
+          <button data-mult="1">X1</button>
+          <button data-mult="5">X5</button>
+          <button data-mult="10">X10</button>
+          <button data-mult="20">X20</button>
+          <button data-mult="50">X50</button>
+          <button data-mult="100">X100</button>
+        </div>
+      </div>
+
+      <div class="bet-section agree-section">
+        <input type="checkbox" id="agreeRules">
+        <label for="agreeRules">I agree <a href="#" class="rules-link">《Pre-sale rules》</a></label>
+      </div>
+    </div>
+
+    <div class="bet-footer">
+      <button class="cancel-btn" id="cancelBet">Cancel</button>
+      <button class="total-btn" id="placeBet">Total amount ₹<span id="totalAmount">1.00</span></button>
     </div>
   </div>
 </div>
+
 
 
 
