@@ -268,44 +268,116 @@
     transform: scale(1.05);
   }
 
-  .my-history-table {
-  width: 100%;
-  border-collapse: collapse;
+ /* MY HISTORY - Card style */
+#myHistory {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 100%;
+  overflow-x: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin-top: 8px;
 }
 
-.my-history-table th,
-.my-history-table td {
-  border: 1px solid #ddd;
-  padding: 8px 12px;
-  text-align: center;
-  font-size: 14px;
+.my-history-card {
+  display: flex;
+  align-items: center;
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 0.5);
+  color: #ddd;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.my-history-table thead {
-  background-color: #222;
-  color: #fff;
-}
-
-.my-history-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.my-history-table tbody tr.win {
-  background-color: #d4edda; /* light green */
-  color: #155724;
-  font-weight: 600;
-}
-
-.my-history-table tbody tr.lost {
-  background-color: #f8d7da; /* light red */
-  color: #721c24;
-  font-weight: 600;
-}
-
-.result-cell {
+/* Bet type colored box */
+.bet-box {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  user-select: none;
+  box-shadow: 0 0 5px rgb(0 0 0 / 0.7);
+}
+
+/* Color bets */
+.bet-box.red {
+  background: #e74c3c;
+  box-shadow: 0 0 8px #e74c3c;
+}
+.bet-box.green {
+  background: #27ae60;
+  box-shadow: 0 0 8px #27ae60;
+}
+.bet-box.violet {
+  background: #8e44ad;
+  box-shadow: 0 0 8px #8e44ad;
+}
+
+/* Number bet styling */
+.bet-box.number-bet {
+  background: #34495e;
+  box-shadow: 0 0 8px #34495e;
+  font-size: 16px;
+  letter-spacing: 1.5px;
+}
+
+/* Details block */
+.my-history-details {
+  flex: 1 1 auto;
+  min-width: 160px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #bbb;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  user-select: text;
+}
+
+/* Result pill */
+.my-history-result {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  min-width: 50px;
+  text-align: center;
+  user-select: none;
+}
+
+.result-win {
+  background-color: #2ecc71;
+  color: #144d14;
+  box-shadow: 0 0 5px #2ecc71;
+}
+
+.result-loss {
+  background-color: #e74c3c;
+  color: #6e1414;
+  box-shadow: 0 0 5px #e74c3c;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .my-history-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .my-history-result {
+    align-self: stretch;
+    text-align: left;
+  }
 }
 
 </style>
@@ -610,55 +682,40 @@ function renderMyHistory(container, bets) {
   container.innerHTML = '';
 
   if (!bets?.length) {
-    container.innerHTML = `<div style="padding:16px;color:#999;font-style:italic;">You have not placed any bets yet.</div>`;
+    container.innerHTML = `<div style="padding:16px;color:#999;font-style:italic; text-align:center;">You have not placed any bets yet.</div>`;
     return;
   }
 
-  // Create table for clean display
-  const table = document.createElement('table');
-  table.className = 'my-history-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Round</th>
-        <th>Bet Type</th>
-        <th>Bet Value</th>
-        <th>Amount (₹)</th>
-        <th>Result</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
-
-  const tbody = table.querySelector('tbody');
-
   bets.slice(0, 20).forEach(bet => {
     const isNumberBet = bet.numberBet !== undefined && bet.numberBet !== null;
-    const betType = isNumberBet ? 'Number' : 'Color';
-    const betValue = isNumberBet ? bet.numberBet : bet.colorBet || '-';
+    const betValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
     const amount = parseFloat(bet.amount ?? 0).toFixed(2);
     const isWin = bet.win === true;
 
-    // Color coding for result
-    const resultText = isWin ? 'Won' : 'Lost';
-    const resultClass = isWin ? 'win' : 'lost';
+    // CSS class for bet type box color
+    let betClass = 'bet-box ';
+    if (isNumberBet) betClass += 'number-bet';
+    else betClass += (bet.colorBet || '').toLowerCase();
 
-    // Create row
-    const tr = document.createElement('tr');
-    tr.className = resultClass;
+    const resultText = isWin ? 'WIN' : 'LOSS';
+    const resultClass = isWin ? 'result-win' : 'result-loss';
 
-    tr.innerHTML = `
-      <td>${bet.roundId ?? '-'}</td>
-      <td>${betType}</td>
-      <td>${betValue}</td>
-      <td>${amount}</td>
-      <td class="result-cell">${resultText}</td>
+    // Create the card div
+    const div = document.createElement('div');
+    div.className = 'my-history-card';
+
+    div.innerHTML = `
+      <div class="${betClass}">${isNumberBet ? betValue : ''}</div>
+      <div class="my-history-details">
+        <div><strong>Round:</strong> ${bet.roundId ?? '-'}</div>
+        <div><strong>Bet:</strong> ${betValue}</div>
+        <div><strong>Amount:</strong> ₹${amount}</div>
+      </div>
+      <div class="my-history-result ${resultClass}">${resultText}</div>
     `;
 
-    tbody.appendChild(tr);
+    container.appendChild(div);
   });
-
-  container.appendChild(table);
 }
 
 
