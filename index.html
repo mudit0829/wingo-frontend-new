@@ -360,69 +360,78 @@
 </style>
 
 <script>
-/* ---------------- BETTING POPUP & MAIN SCRIPT ---------------- */
-
-/* Selection state */
-let selectedBetType = null;   // 'color' or 'number'
-let selectedBetValue = null;  // 'Red' / 'Green' / number etc.
-
-/* DOM references used by popup */
-const popupElId = 'betPopup';
-const popupAmountId = 'betAmount';
-const popupTitleId = 'popupTitle';
-const popupMessageId = 'popupMessage';
+/* ---------------- CLEANED & WORKING GAME SCRIPT (Replace your current <script> block with this) ---------------- */
 
 /* API base */
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
-/* Current user/round state (use the same localStorage key your app already uses) */
+/* Current user/round state */
 const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
-let currentRoundId = ""; // updated by fetchCurrentRound()
+let currentRoundId = "";
+let roundsCache = [];
 
-/* ---------------- Popup open/close (accessibility fixes) ---------------- */
+/* Selection state (what user is betting on) */
+let selectedBetType = null;   // 'color' or 'number'
+let selectedBetValue = null;  // 'Red' / 'Green' / 2 etc.
+
+/* Popup amount controls state */
+let selectedDenom = 1;
+let selectedMultiplier = 1;
+
+/* Utility - toggle active class helper */
+function setActiveButton(buttonList, activeBtn) {
+  buttonList.forEach(b => b.classList.toggle('active', b === activeBtn));
+}
+
+/* ---------------- POPUP UI ---------------- */
 function openBetPopup(type, choice) {
+  // Set selection
+  selectedBetType = type;
+  selectedBetValue = choice;
+
   const modal = document.getElementById('betModal');
   const header = document.getElementById('betHeader');
   const choiceText = document.getElementById('betChoiceText');
 
-  // Remove old color classes
+  // style header (green for green color, red otherwise)
   header.classList.remove('green', 'red');
-
-  // Set style depending on type
-  if (type === 'color' && choice.toLowerCase() === 'green') {
-    header.classList.add('green');
-  } else {
-    header.classList.add('red');
-  }
+  if (type === 'color' && String(choice).toLowerCase() === 'green') header.classList.add('green');
+  else header.classList.add('red');
 
   choiceText.textContent = `Select ${choice}`;
+
+  // reset popup controls to defaults
+  selectedDenom = 1;
+  selectedMultiplier = 1;
+  const qtyEl = document.getElementById('betQty');
+  if (qtyEl) qtyEl.value = 1;
+
+  // set active classes for denom and multiplier buttons
+  const denomButtons = modal.querySelectorAll('.bet-buttons button[data-balance]');
+  denomButtons.forEach(b => b.classList.toggle('active', Number(b.dataset.balance) === selectedDenom));
+  const multButtons = modal.querySelectorAll('.bet-buttons.multipliers button[data-mult]');
+  multButtons.forEach(b => b.classList.toggle('active', Number(b.dataset.mult) === selectedMultiplier));
+
+  updatePopupTotal();
+
+  // show modal
   modal.classList.remove('hidden');
+
+  // focus qty for accessibility
+  setTimeout(() => {
+    const el = document.getElementById('betQty');
+    if (el) el.focus();
+  }, 60);
 }
 
-document.getElementById('cancelBet').onclick = () => {
+function closeBetPopup() {
+  // hide modal and clear selection
   document.getElementById('betModal').classList.add('hidden');
-};
-
-
-function hideBetPopup() {
-  const popup = document.getElementById(popupElId);
-  const amt = document.getElementById(popupAmountId);
-
-  if (popup) {
-    popup.setAttribute('aria-hidden', 'true');
-    popup.classList.remove('show');
-  }
-
-  if (amt) {
-    amt.value = '';
-    amt.removeAttribute('aria-invalid');
-  }
-
   selectedBetType = null;
   selectedBetValue = null;
 }
 
-/* Called from HTML inline handlers */
+/* Inline handlers used in HTML */
 function selectColor(color) {
   openBetPopup('color', color);
 }
@@ -431,32 +440,81 @@ function selectNumber(number) {
   openBetPopup('number', number);
 }
 
-/* ---------------- Place bet (send correct shape) ---------------- */
-async function placeBet() {
-  const amtEl = document.getElementById(popupAmountId);
-  const raw = amtEl ? amtEl.value : '';
-  const amount = raw === '' ? 0 : Number(raw);
+/* Popup control wiring (attached on DOM ready) */
+function wireBetModalControls() {
+  const modal = document.getElementById('betModal');
+  if (!modal) return;
 
-  if (!amount || isNaN(amount) || amount <= 0) {
-    if (amtEl) {
-      amtEl.setAttribute('aria-invalid', 'true');
-      amtEl.focus();
-    }
-    alert("Please enter a valid bet amount.");
-    return;
-  }
+  // Denom buttons
+  const denomButtons = modal.querySelectorAll('.bet-buttons button[data-balance]');
+  denomButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedDenom = Number(btn.dataset.balance) || 1;
+      setActiveButton(Array.from(denomButtons), btn);
+      updatePopupTotal();
+    });
+  });
 
+  // Multiplier buttons
+  const multBtnContainer = modal.querySelector('.bet-buttons.multipliers');
+  const multButtons = multBtnContainer ? multBtnContainer.querySelectorAll('button[data-mult]') : [];
+  multButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMultiplier = Number(btn.dataset.mult) || 1;
+      setActiveButton(Array.from(multButtons), btn);
+      updatePopupTotal();
+    });
+  });
+
+  // Qty +/- and input
+  const qtyInput = document.getElementById('betQty');
+  const qtyPlus = document.getElementById('qtyPlus');
+  const qtyMinus = document.getElementById('qtyMinus');
+  if (qtyPlus) qtyPlus.addEventListener('click', () => { qtyInput.value = Math.max(1, Number(qtyInput.value || 1) + 1); updatePopupTotal(); });
+  if (qtyMinus) qtyMinus.addEventListener('click', () => { qtyInput.value = Math.max(1, Number(qtyInput.value || 1) - 1); updatePopupTotal(); });
+  if (qtyInput) qtyInput.addEventListener('input', () => { if (!qtyInput.value || qtyInput.value < 1) qtyInput.value = 1; updatePopupTotal(); });
+
+  // Cancel button
+  const cancelBtn = document.getElementById('cancelBet');
+  if (cancelBtn) cancelBtn.addEventListener('click', closeBetPopup);
+
+  // Place button
+  const placeBtn = document.getElementById('placeBet');
+  if (placeBtn) placeBtn.addEventListener('click', handlePlaceBet);
+}
+
+/* Update displayed total in popup */
+function updatePopupTotal() {
+  const qty = Number(document.getElementById('betQty')?.value || 1);
+  const total = selectedDenom * qty * selectedMultiplier;
+  const totalSpan = document.getElementById('totalAmount');
+  if (totalSpan) totalSpan.textContent = total.toFixed(2);
+}
+
+/* ---------------- PLACE BET ---------------- */
+/* Note: using a separate function name to avoid id/function name collisions */
+async function handlePlaceBet() {
+  // require that user selected bet target
   if (!selectedBetType || selectedBetValue === null) {
     alert("Please select a color or number to bet on.");
     return;
   }
 
-  const email = localStorage.getItem("userEmail") || currentEmail;
-  if (!email) {
-    alert("Missing user email. Please login again.");
+  const qty = Number(document.getElementById('betQty')?.value || 1);
+  const amount = selectedDenom * qty * selectedMultiplier;
+  if (!amount || amount <= 0) {
+    alert("Please choose a valid amount.");
     return;
   }
 
+  // ensure we have email
+  const email = localStorage.getItem('userEmail') || currentEmail;
+  if (!email) {
+    alert("Missing user email. Please login.");
+    return;
+  }
+
+  // ensure we have currentRoundId (try to refresh)
   if (!currentRoundId) {
     try {
       const rres = await fetch(`${apiUrl}/api/rounds`);
@@ -477,14 +535,16 @@ async function placeBet() {
     return;
   }
 
+  // Prepare payload matching server shape
   const payload = {
-    email: email,
+    email,
     roundId: currentRoundId,
-    amount: amount,
+    amount,
     colorBet: selectedBetType === 'color' ? selectedBetValue : null,
     numberBet: selectedBetType === 'number' ? Number(selectedBetValue) : null
   };
 
+  // send POST
   try {
     const res = await fetch(`${apiUrl}/api/bets`, {
       method: 'POST',
@@ -493,28 +553,23 @@ async function placeBet() {
     });
 
     const data = await res.json();
-
     if (!res.ok) {
-      console.error("Bet POST failed:", data);
-      alert(data?.message || "Bet failed. See console for details.");
+      console.error("Place bet error:", data);
+      alert(data?.message || "Failed to place bet. See console.");
       return;
     }
 
+    // success
     alert("Bet placed successfully!");
-    if (amtEl) amtEl.value = '';
-    hideBetPopup();
-    try { fetchWalletBalance(); } catch (e) {}
-    try { loadMyHistory(); } catch (e) {}
+    // update UI: close modal, refresh wallet & history
+    closeBetPopup();
+    try { fetchWalletBalance(); } catch (e) { /* ignore */ }
+    try { loadMyHistory(); } catch (e) { /* ignore */ }
   } catch (err) {
-    console.error("Network / Place Bet error:", err);
+    console.error("Network error placing bet:", err);
     alert("Network error placing bet. Please try again.");
   }
 }
-
-/* ---------------- INIT & GLOBALS ---------------- */
-document.addEventListener('DOMContentLoaded', () => {
-  initPhase4();
-});
 
 /* ---------------- WALLET ---------------- */
 async function fetchWalletBalance() {
@@ -531,7 +586,7 @@ async function fetchWalletBalance() {
 }
 
 /* ---------------- ROUND / TIMER ---------------- */
-let fetchCurrentRoundInProgress = false; // to avoid overlap
+let fetchCurrentRoundInProgress = false;
 async function fetchCurrentRound() {
   if (fetchCurrentRoundInProgress) return;
   fetchCurrentRoundInProgress = true;
@@ -541,6 +596,7 @@ async function fetchCurrentRound() {
     const rounds = await res.json();
     if (!rounds?.length) return;
 
+    roundsCache = rounds; // cache latest rounds list
     const round = rounds[0];
     currentRoundId = round.roundId || currentRoundId;
     localStorage.setItem("currentRoundId", currentRoundId);
@@ -554,13 +610,7 @@ async function fetchCurrentRound() {
       const remaining = 30 - elapsed;
       const timeEl = document.getElementById("timeDigits");
       if (timeEl) {
-        if (remaining <= 0) {
-          timeEl.innerText = "00:00";
-        } else {
-          const m = String(Math.floor(remaining / 60)).padStart(2, '0');
-          const s = String(remaining % 60).padStart(2, '0');
-          timeEl.innerText = `${m}:${s}`;
-        }
+        timeEl.innerText = remaining <= 0 ? "00:00" : `${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining % 60).padStart(2,'0')}`;
       }
     }
   } catch (err) {
@@ -587,6 +637,7 @@ async function loadGameHistory() {
     });
 
     renderGameHistory(container, rounds);
+    roundsCache = rounds; // update cache
   } catch (err) {
     container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load game history: ${err.message}</div>`;
   }
@@ -600,7 +651,7 @@ function renderGameHistory(container, rounds) {
   `;
   const table = container.querySelector('table');
   rounds.slice(0, 20).forEach(r => {
-    const number = r.resultNumber ?? '-';
+    const number = (r.resultNumber !== undefined && r.resultNumber !== null) ? r.resultNumber : '-';
     const colorClass = (r.resultColor || '').toLowerCase();
     const bigSmall = number === '-' ? '-' : (number >= 5 ? 'Big' : 'Small');
     const row = document.createElement('tr');
@@ -618,11 +669,21 @@ function renderGameHistory(container, rounds) {
 async function loadMyHistory() {
   const container = document.getElementById('myHistory');
   if (!container) return;
+
   try {
-    const res = await fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    const bets = await res.json();
-    renderMyHistory(container, bets);
+    // fetch bets and rounds concurrently
+    const [betsRes, roundsRes] = await Promise.all([
+      fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`),
+      fetch(`${apiUrl}/api/rounds`)
+    ]);
+    if (!betsRes.ok) throw new Error(`Bets: ${betsRes.status} ${betsRes.statusText}`);
+    if (!roundsRes.ok) throw new Error(`Rounds: ${roundsRes.status} ${roundsRes.statusText}`);
+
+    const bets = await betsRes.json();
+    const rounds = await roundsRes.json();
+    const roundMap = new Map((rounds || []).map(r => [r.roundId, r]));
+
+    renderMyHistory(container, bets, roundMap);
   } catch (err) {
     container.innerHTML = `<div style="padding:12px;color:#ff4d4d;font-weight:bold;">Unable to load your history: ${err.message}</div>`;
   }
@@ -632,63 +693,70 @@ function renderMyHistory(container, bets, roundMap) {
   container.innerHTML = '';
 
   if (!bets?.length) {
-    container.innerHTML = `<div style="padding:12px;color:#ccc;text-align:center">No bets found.</div>`;
+    container.innerHTML = `<div style="padding:16px;color:#999;font-style:italic; text-align:center;">You have not placed any bets yet.</div>`;
     return;
   }
 
-  // Sort newest first
-  bets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  // newest first
+  bets.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
 
   bets.slice(0, 20).forEach(bet => {
-    const round = roundMap.get(bet.roundId);
     const isNumberBet = bet.numberBet !== undefined && bet.numberBet !== null;
-    const displayValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
-
+    const betValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
+    const amount = parseFloat(bet.amount ?? 0).toFixed(2);
     const isWin = bet.win === true;
     const profit = bet.profit ?? 0;
-    const netAmount = isWin ? ((bet.amount ?? 0) + profit) : -(bet.amount ?? 0);
-
-    const statusClass = isWin ? 'win' : 'loss';
-    const statusText = isWin ? 'Win' : 'Loss';
+    const netAmount = isWin ? ((bet.amount ?? 0) + profit) : (-(bet.amount ?? 0));
     const amountText = `${netAmount >= 0 ? '+' : '-'}₹${Math.abs(netAmount).toFixed(2)}`;
 
-    const resultColor = round?.resultColor || '';
-    const resultNumber = round?.resultNumber ?? '-';
+    // get round result for this bet (if available)
+    const round = roundMap.get(bet.roundId);
+    const resultNumber = round?.resultNumber != null ? round.resultNumber : '-';
+    const resultColor = (round?.resultColor || '-');
+
+    // category box (color or number)
+    let betBoxClass = 'bet-box ';
+    if (isNumberBet) betBoxClass += 'number-bet';
+    else betBoxClass += (String(bet.colorBet || '').toLowerCase());
+
+    const resultClass = isWin ? 'result-win' : 'result-loss';
+    const statusText = isWin ? 'WIN' : 'LOSS';
 
     const card = document.createElement('div');
-    card.className = `history-card ${statusClass}`;
+    card.className = 'history-card';
     card.innerHTML = `
-      <div class="history-left">
-        <div class="history-round">Round: ${bet.roundId}</div>
-        <div class="history-bet">
-          <span class="label">Your Bet:</span>
-          <span class="value ${isNumberBet ? 'number-bet' : displayValue.toLowerCase()}">${displayValue}</span>
-        </div>
-        <div class="history-result">
-          <span class="label">Result:</span>
-          <span class="value ${resultColor.toLowerCase()}">${resultNumber}</span>
+      <div style="display:flex;gap:12px;align-items:center;flex:1;">
+        <div class="${betBoxClass}">${isNumberBet ? betValue : ''}</div>
+        <div class="my-history-details">
+          <div><strong>Round:</strong> ${bet.roundId ?? '-'}</div>
+          <div><strong>Your Bet:</strong> ${betValue}</div>
+          <div><strong>Result:</strong> ${resultNumber} (${resultColor})</div>
         </div>
       </div>
-      <div class="history-right">
-        <div class="amount ${statusClass}">${amountText}</div>
-        <div class="status ${statusClass}">${statusText}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="amount ${isWin ? 'win' : 'loss'}">${amountText}</div>
+        <div class="status ${isWin ? 'win' : 'loss'}">${statusText}</div>
       </div>
     `;
     container.appendChild(card);
   });
 }
 
-
-/* ---------------- Startup (polling intervals increased to avoid resource errors) ---------------- */
+/* ---------------- INIT / POLLING ---------------- */
 async function initPhase4() {
+  // wire modal controls now
+  wireBetModalControls();
+
+  // initial loads
   await safeCall(fetchWalletBalance, 'fetchWalletBalance');
   await safeCall(fetchCurrentRound, 'fetchCurrentRound');
   await safeCall(loadGameHistory, 'loadGameHistory');
   await safeCall(loadMyHistory, 'loadMyHistory');
 
-  setInterval(() => safeCall(fetchCurrentRound, 'fetchCurrentRound'), 3000);  // every 3 seconds
-  setInterval(() => safeCall(loadGameHistory, 'loadGameHistory'), 10000);    // every 10 seconds
-  setInterval(() => safeCall(loadMyHistory, 'loadMyHistory'), 10000);       // every 10 seconds
+  // polling
+  setInterval(() => safeCall(fetchCurrentRound, 'fetchCurrentRound'), 3000);
+  setInterval(() => safeCall(loadGameHistory, 'loadGameHistory'), 10000);
+  setInterval(() => safeCall(loadMyHistory, 'loadMyHistory'), 10000);
 }
 
 async function safeCall(fn, name) {
@@ -698,6 +766,14 @@ async function safeCall(fn, name) {
     console.error(`${name} failed:`, err);
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  // attach cancel button handler (in case DOM parsed earlier)
+  const cancelBtn = document.getElementById('cancelBet');
+  if (cancelBtn) cancelBtn.addEventListener('click', closeBetPopup);
+
+  initPhase4();
+});
 </script>
 
 
