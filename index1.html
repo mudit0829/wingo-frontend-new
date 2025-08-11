@@ -5,73 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WinGo Game</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Minimal required inline CSS overrides for popup/history look -->
-  <style>
-    /* Popup overlay for betting */
-    .bet-modal {
-      position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.45);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-    }
-    .bet-modal.hidden { display: none; }
-    .bet-popup {
-      background: #282828;
-      padding: 22px 18px;
-      border-radius: 14px;
-      box-shadow: 0 4px 44px #222c;
-      width: 97vw; max-width: 370px;
-      color: #fff;
-      z-index: 10001;
-    }
-    .bet-header.green { color: #27de60; }
-    .bet-header.red { color: #eb5757; }
-    .bet-header { font-size:17px; font-weight:bold; margin-bottom: 12px; }
-    .bet-title { font-size:17px; font-weight:bold; }
-    .bet-choice { font-size:15px; margin-top:6px; }
-    .bet-buttons button, .bet-buttons.multipliers button {
-      background: #363636; color:#fff; border:none; border-radius:8px;
-      margin: 2px 7px 2px 0; font-size:14px; padding:5px 11px;
-      cursor:pointer; transition: background .16s;
-    }
-    .bet-buttons button.active,
-    .bet-buttons.multipliers button.active { background: #ffe07b; color:#282828; }
-    .qty-btn { background: #363636; color:#fff; border:none; border-radius:8px; font-size:17px; padding:2px 10px; }
-    .cancel-btn { background: #eb5757; color:#fff; border:none; border-radius:8px; font-size:15px; padding:7px 20px; margin-top:15px;}
-    .total-btn { background: #27de60; color:#fff; border:none; border-radius:8px; font-size:15px; padding:7px 20px; margin-top:15px;}
-    /* History table number colored as screenshot */
-    .history-number {
-      display: inline-block; min-width: 22px; padding: 3px 0;
-      font-size: 18px; font-weight: 700; text-align: center;
-      border-radius: 4px;
-    }
-    .history-number.red { color: #eb5757; }
-    .history-number.green { color: #27de60; }
-    .history-number.violet { color: #9052c3; }
-    .dot.red { background:#eb5757; }
-    .dot.green { background:#27de60; }
-    .dot.violet { background:#9052c3; }
-    /* Style for my history card rows */
-    .my-history-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      background: #181818;
-      border-radius: 10px;
-      padding: 12px 16px;
-    }
-    .color-box { width: 28px; height: 28px; border-radius: 7px; margin-right: 12px; }
-    .color-box.green { background: #27de60; }
-    .color-box.red { background: #eb5757; }
-    .color-box.violet { background: #9052c3; }
-    .status.succeed, .amount.succeed { color: #27de60; font-weight: bold; }
-    .status.failed, .amount.failed { color: #eb5757; font-weight: bold; }
-  </style>
 </head>
 <body>
 
- <div class="header">
+<div class="header">
   <img src="assets/logo.png" alt="Game Logo" class="logo">
   <div class="header-icons">
     <img src="assets/user-icon.png" alt="User" class="icon">
@@ -178,6 +115,8 @@
 </div>
 
 <div class="tab-content" id="gameHistory"></div>
+<div class="pagination" id="gameHistoryPagination"></div>
+
 <div class="tab-content hidden" id="chart">
   <table class="history-table">
     <tr><th>Statistic</th><th colspan="10">(last 100 Periods)</th></tr>
@@ -194,8 +133,11 @@
     <div>20250806100051045: 3 (S)</div>
   </div>
 </div>
-<div class="tab-content hidden" id="myHistory"></div>
 
+<div class="tab-content hidden" id="myHistory"></div>
+<div class="pagination" id="myHistoryPagination"></div>
+
+<!-- Betting Popup -->
 <div id="betModal" class="bet-modal hidden">
   <div class="bet-popup">
     <div class="bet-header" id="betHeader">
@@ -242,6 +184,7 @@
   </div>
 </div>
 
+
 <script>
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
@@ -249,27 +192,54 @@ let currentRoundId = "";
 let roundsCache = [];
 let selectedBetType = null, selectedBetValue = null, selectedDenom = 1, selectedMultiplier = 1;
 
-/* Tab switching */
+// -- PAGINATION state --
+let gameHistoryArr = []; let gameHistoryPage = 0;
+let myHistoryArr = [];   let myHistoryPage   = 0;
+const itemsPerPage = 20;
+
+// == WinGo color mapping function (for bet number AND result number)
+function getWinGoColor(number) {
+  number = Number(number);
+  if (number === 0 || number === 5) return 'violet';
+  if ([1, 3, 7, 9].includes(number)) return 'green';
+  if ([2, 4, 6, 8].includes(number)) return 'red';
+  return '';
+}
+
+// -- Tabs
 function showTab(tabId, btnEl) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
   document.getElementById(tabId).classList.remove('hidden');
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   btnEl.classList.add('active');
+
+  // Show only matching pagination
+  document.getElementById('gameHistoryPagination').style.display = 'none';
+  document.getElementById('myHistoryPagination').style.display = 'none';
+  if (tabId==='gameHistory') document.getElementById('gameHistoryPagination').style.display = '';
+  if (tabId==='myHistory') document.getElementById('myHistoryPagination').style.display = '';
 }
 
-/* Betting popup trigger functions */
+// -- Betting popup triggers
 function selectColor(color) { openBetPopup('color', color); }
 function selectNumber(number) { openBetPopup('number', number); }
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
-function selectMultiplier(mult) { selectedMultiplier = Number(mult.replace('X','')) || 1; updatePopupTotal(); }
+function selectMultiplier(mult) {
+  selectedMultiplier = Number(mult.replace('X','')) || 1;
+  updatePopupTotal();
+}
 
 function openBetPopup(type, choice) {
   selectedBetType = type; selectedBetValue = choice;
   const modal = document.getElementById('betModal');
   const header = document.getElementById('betHeader'), choiceText = document.getElementById('betChoiceText');
-  header.classList.remove('green', 'red');
-  if (type === 'color' && String(choice).toLowerCase() === 'green') header.classList.add('green'); else header.classList.add('red');
+  header.classList.remove('green', 'red', 'violet');
+  let col = String(choice).toLowerCase();
+  if (col === 'green') header.classList.add('green');
+  else if (col === 'red') header.classList.add('red');
+  else if (col === 'violet') header.classList.add('violet');
+  else header.classList.add('red');
   choiceText.textContent = `Select ${choice}`;
   selectedDenom = 1; selectedMultiplier = 1;
   document.getElementById('betQty').value = 1;
@@ -284,6 +254,7 @@ function closeBetPopup() {
 }
 window.closeBetPopup = closeBetPopup;
 
+// -- Popup controls
 function wireBetModalControls() {
   const modal = document.getElementById('betModal');
   if (!modal) return;
@@ -302,11 +273,11 @@ function wireBetModalControls() {
       updatePopupTotal();
     });
   });
-  document.getElementById('qtyPlus').onclick = () => { 
+  document.getElementById('qtyPlus').onclick = () => {
     let qtyInput = document.getElementById('betQty');
     qtyInput.value = Math.max(1, Number(qtyInput.value || 1) + 1); updatePopupTotal();
   };
-  document.getElementById('qtyMinus').onclick = () => { 
+  document.getElementById('qtyMinus').onclick = () => {
     let qtyInput = document.getElementById('betQty');
     qtyInput.value = Math.max(1, Number(qtyInput.value || 1) - 1); updatePopupTotal();
   };
@@ -316,14 +287,12 @@ function wireBetModalControls() {
   document.getElementById('cancelBet').onclick = closeBetPopup;
   document.getElementById('placeBet').onclick = handlePlaceBet;
 }
-
 function updatePopupTotal() {
   const qty = Number(document.getElementById('betQty')?.value || 1);
   const total = selectedDenom * qty * selectedMultiplier;
   const totalSpan = document.getElementById('totalAmount');
   if (totalSpan) totalSpan.textContent = total.toFixed(2);
 }
-
 async function handlePlaceBet() {
   if (!selectedBetType || selectedBetValue === null) { alert("Please select a color or number to bet on."); return; }
   const qty = Number(document.getElementById('betQty')?.value || 1);
@@ -358,7 +327,7 @@ async function handlePlaceBet() {
   } catch (err) { console.error("Network error placing bet:", err); alert("Network error placing bet. Please try again."); }
 }
 
-/* Wallet */
+// -- Wallet
 async function fetchWalletBalance() {
   try {
     const res = await fetch(`${apiUrl}/api/users/wallet/${encodeURIComponent(currentEmail)}`);
@@ -370,7 +339,7 @@ async function fetchWalletBalance() {
   } catch (err) { console.error("Wallet Fetch Failed:", err); }
 }
 
-/* Timer/round */
+// -- Timer/round
 let fetchCurrentRoundInProgress = false;
 async function fetchCurrentRound() {
   if (fetchCurrentRoundInProgress) return;
@@ -397,7 +366,7 @@ async function fetchCurrentRound() {
   finally { fetchCurrentRoundInProgress = false; }
 }
 
-/* Game history rendering (colored number and dot) */
+// -- GAME HISTORY PAGINATION FETCH
 async function loadGameHistory() {
   const container = document.getElementById('gameHistory');
   if (!container) return;
@@ -407,23 +376,30 @@ async function loadGameHistory() {
     let rounds = await res.json();
     const seen = new Set();
     rounds = rounds.filter(r => { if (seen.has(r.roundId)) return false; seen.add(r.roundId); return true; });
-    renderGameHistory(container, rounds);
-    roundsCache = rounds;
+    gameHistoryArr = rounds;
+    renderGameHistoryPage();
   } catch (err) {
     container.innerHTML = `<div style="padding:12px;color:#ffb3b3">Unable to load game history: ${err.message}</div>`;
   }
 }
 
-function renderGameHistory(container, rounds) {
+// Show single page
+function renderGameHistoryPage() {
+  const container = document.getElementById('gameHistory');
+  const pagination = document.getElementById('gameHistoryPagination');
   container.innerHTML = `
     <table class="history-table">
       <tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr>
     </table>
   `;
   const table = container.querySelector('table');
-  rounds.slice(0, 20).forEach(r => {
+  const history = gameHistoryArr || [];
+  const page = gameHistoryPage;
+  const start = page * itemsPerPage;
+  const end = start + itemsPerPage;
+  history.slice(start, end).forEach(r => {
     const number = (r.resultNumber !== undefined && r.resultNumber !== null) ? r.resultNumber : '-';
-    const colorClass = (r.resultColor || '').toLowerCase();
+    const colorClass = getWinGoColor(number);
     const bigSmall = number === '-' ? '-' : (number >= 5 ? 'Big' : 'Small');
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -434,9 +410,24 @@ function renderGameHistory(container, rounds) {
     `;
     table.appendChild(row);
   });
+  // Pagination Buttons
+  const totalPages = Math.ceil((history.length || 0) / itemsPerPage);
+  pagination.innerHTML = '';
+  if (totalPages > 1) {
+    if (page > 0) pagination.innerHTML += `<button onclick="prevGameHistory()">Prev</button>`;
+    pagination.innerHTML += ` <span>Page ${page+1} of ${totalPages}</span> `;
+    if (page < totalPages - 1) pagination.innerHTML += `<button onclick="nextGameHistory()">Next</button>`;
+  }
+}
+window.prevGameHistory = function() {
+  if (gameHistoryPage > 0) { gameHistoryPage--; renderGameHistoryPage(); }
+}
+window.nextGameHistory = function() {
+  const totalPages = Math.ceil((gameHistoryArr.length || 0) / itemsPerPage);
+  if (gameHistoryPage < totalPages - 1) { gameHistoryPage++; renderGameHistoryPage(); }
 }
 
-/* My history, cards style and color as screenshot */
+// -- MY HISTORY PAGINATION FETCH
 async function loadMyHistory() {
   const container = document.getElementById('myHistory');
   if (!container) return;
@@ -450,49 +441,69 @@ async function loadMyHistory() {
     const bets = await betsRes.json();
     const rounds = await roundsRes.json();
     const roundMap = new Map((rounds || []).map(r => [r.roundId, r]));
-    renderMyHistory(container, bets, roundMap);
+    myHistoryArr = (bets || []).map(bet => {
+      // Enhance: which number/color? Attach result if available for extra detail (not used now)
+      return {...bet, round: roundMap.get(bet.roundId)};
+    });
+    renderMyHistoryPage();
   } catch (err) {
     container.innerHTML = `<div style="padding:12px;color:#ff4d4d;font-weight:bold;">Unable to load your history: ${err.message}</div>`;
   }
 }
 
-function renderMyHistory(container, bets, roundMap) {
+function renderMyHistoryPage() {
+  const container = document.getElementById('myHistory');
+  const pagination = document.getElementById('myHistoryPagination');
   container.innerHTML = '';
-  if (!bets?.length) {
-    container.innerHTML = `<div style="padding:16px;color:#999;font-style:italic; text-align:center;">You have not placed any bets yet.</div>`;
-    return;
-  }
-  bets.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-  bets.slice(0, 20).forEach(bet => {
+  let items = myHistoryArr || [];
+  let page = myHistoryPage;
+  let start = page * itemsPerPage;
+  let end = start + itemsPerPage;
+  items.slice(start, end).forEach(bet => {
+    // IsNumberBet?
     const isNumberBet = bet.numberBet !== undefined && bet.numberBet !== null;
-    const betValue = isNumberBet ? bet.numberBet : (bet.colorBet || '-');
-    const amount = parseFloat(bet.amount ?? 0).toFixed(2);
+    const betNum = isNumberBet ? bet.numberBet : '';
+    const betColorClass = getWinGoColor(bet.numberBet);
+    const betColorBlockClass = bet.colorBet ? getWinGoColor(bet.colorBet) : '';
     const isWin = bet.win === true;
+    const statusClass = isWin ? 'succeed' : 'failed';
+    const statusText = isWin ? 'Succeed' : 'Failed';
     const profit = bet.profit ?? 0;
     const netAmount = isWin ? ((bet.amount ?? 0) + profit) : (-(bet.amount ?? 0));
     const amountText = `${netAmount >= 0 ? '+' : '-'}₹${Math.abs(netAmount).toFixed(2)}`;
-    const round = roundMap.get(bet.roundId);
-    const resultNumber = round?.resultNumber != null ? round.resultNumber : '-';
-    const resultColor = (round?.resultColor || '-');
-    // Use color class on left box per bet color
-    const colorBoxClass = `color-box ${String(bet.colorBet || '').toLowerCase()}`;
-    const statusClass = isWin ? 'succeed' : 'failed';
+    const periodText = bet.roundId ?? '-';
+    const timeText = bet.timestamp ? new Date(bet.timestamp).toLocaleString('en-IN', { hour12: false }) : '-';
+    // -- DESIGN: Rect color on left, then colored number, then round/time, then status/amount like screenshot
     const card = document.createElement('div');
     card.className = `my-history-item ${statusClass}`;
     card.innerHTML = `
-      <div class="${colorBoxClass}"></div>
-      <div>
-        <div>${bet.roundId ?? '-'}</div>
-        <div>${new Date(bet.timestamp).toLocaleString('en-IN', { hour12: false })}</div>
+      <div class="color-box ${betColorClass}"></div>
+      <div class="bet-number ${betColorClass}">${typeof betNum === 'number' ? betNum : ''}</div>
+      <div style="min-width:105px;">
+        <div>${periodText}</div>
+        <div>${timeText}</div>
       </div>
-      <div class="status ${statusClass}">${isWin ? 'Succeed' : 'Failed'}</div>
+      <div class="status ${statusClass}">${statusText}</div>
       <div class="amount ${statusClass}">${amountText}</div>
     `;
     container.appendChild(card);
   });
+  // Pagination
+  const totalPages = Math.ceil((myHistoryArr.length || 0) / itemsPerPage);
+  pagination.innerHTML = '';
+  if (totalPages > 1) {
+    if (page > 0) pagination.innerHTML += `<button onclick="prevMyHistory()">Prev</button>`;
+    pagination.innerHTML += ` <span>Page ${page+1} of ${totalPages}</span> `;
+    if (page < totalPages - 1) pagination.innerHTML += `<button onclick="nextMyHistory()">Next</button>`;
+  }
+}
+window.prevMyHistory = function() { if (myHistoryPage > 0) { myHistoryPage--; renderMyHistoryPage(); } }
+window.nextMyHistory = function() {
+   const totalPages = Math.ceil((myHistoryArr.length || 0) / itemsPerPage);
+   if (myHistoryPage < totalPages - 1) { myHistoryPage++; renderMyHistoryPage(); }
 }
 
-/* Initialization */
+// -- INIT --
 async function initPhase4() {
   wireBetModalControls();
   await fetchWalletBalance();
@@ -502,12 +513,14 @@ async function initPhase4() {
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
-}
 
+  // Hide both paginations by default, only show one at a time
+  document.getElementById('myHistoryPagination').style.display = 'none';
+}
 document.addEventListener('DOMContentLoaded', function() {
   initPhase4();
 });
-</script>
 
+</script>
 </body>
 </html>
