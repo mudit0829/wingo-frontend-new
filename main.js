@@ -11,8 +11,19 @@ let gamePage = 0;
 let myPage = 0;
 const itemsPerPage = 20;
 
+// Get token from localStorage
 function getToken() {
   return localStorage.getItem("token") || null;
+}
+
+// Redirect to login if not logged in
+function requireLogin() {
+  if (!getToken()) {
+    alert("Please login first.");
+    window.location.href = "login.html";
+    return false;
+  }
+  return true;
 }
 
 /* Color mapping */
@@ -84,6 +95,7 @@ function wireBetModalControls() {
   document.getElementById("cancelBet").onclick = closeBetPopup;
   document.getElementById("placeBet").onclick = handlePlaceBet;
 }
+
 function updatePopupTotal() {
   const qty = +document.getElementById("betQty").value || 1;
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
@@ -91,8 +103,8 @@ function updatePopupTotal() {
 
 /* Place a bet */
 async function handlePlaceBet() {
+  if (!requireLogin()) return;
   const token = getToken();
-  if (!token) return alert("Please login to place bets");
   const qty = Number(document.getElementById("betQty")?.value || 1);
   const amount = selectedDenom * qty * selectedMultiplier;
 
@@ -123,8 +135,8 @@ async function handlePlaceBet() {
 
 /* Wallet balance */
 async function fetchWalletBalance() {
+  if (!requireLogin()) return;
   const token = getToken();
-  if (!token) return;
   try {
     const r = await fetch(`${apiUrl}/api/user/wallet`, {
       headers: { "Authorization": `Bearer ${token}` }
@@ -174,6 +186,7 @@ async function loadGameHistory() {
     console.error(err.message);
   }
 }
+
 function renderGameHistoryPage() {
   const cont = document.getElementById("gameHistory");
   const start = gamePage * itemsPerPage, end = start + itemsPerPage;
@@ -199,8 +212,8 @@ function renderGameHistoryPage() {
 
 /* My history */
 async function loadMyHistory() {
+  if (!requireLogin()) return;
   const token = getToken();
-  if (!token) return;
   try {
     const [betsR, roundsR] = await Promise.all([
       fetch(`${apiUrl}/api/bets/user`, { headers: { "Authorization": `Bearer ${token}` } }),
@@ -217,6 +230,7 @@ async function loadMyHistory() {
     console.error(err.message);
   }
 }
+
 function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   const start = myPage * itemsPerPage, end = start + itemsPerPage;
@@ -260,6 +274,7 @@ function renderMyHistoryPage() {
 
 /* Init */
 document.addEventListener("DOMContentLoaded", () => {
+  if (!requireLogin()) return;
   wireBetModalControls();
   fetchWalletBalance();
   fetchCurrentRound();
