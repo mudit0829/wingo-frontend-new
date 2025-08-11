@@ -12,7 +12,7 @@ let gamePage = 0;
 let myPage = 0;
 const itemsPerPage = 20;
 
-/* ==== Color mapping function ==== */
+/* Color mapping */
 function getWinGoColor(n) {
   n = Number(n);
   if (n === 0 || n === 5) return "violet";
@@ -21,7 +21,7 @@ function getWinGoColor(n) {
   return "";
 }
 
-/* ==== Tab switching ==== */
+/* Tabs */
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -32,20 +32,22 @@ function showTab(id, btn) {
   document.getElementById("myHistoryPagination").style.display = id === "myHistory" ? "" : "none";
 }
 
-/* ==== Betting popup triggers ==== */
+/* Bet popup triggers */
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectMultiplier(m) { selectedMultiplier = Number(m.replace("X", "")) || 1; updatePopupTotal(); }
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 
-/* ==== Betting popup open/close ==== */
+/* Bet popup open / close */
 function openBetPopup(t, c) {
-  selectedBetType = t; selectedBetValue = c;
+  selectedBetType = t;
+  selectedBetValue = c;
   const header = document.getElementById("betHeader");
   header.className = "bet-header " + getWinGoColor(c);
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
-  selectedDenom = 1; selectedMultiplier = 1;
+  selectedDenom = 1;
+  selectedMultiplier = 1;
   document.getElementById("betQty").value = 1;
   updatePopupTotal();
   document.getElementById("betModal").classList.remove("hidden");
@@ -55,13 +57,19 @@ function closeBetPopup() {
 }
 window.closeBetPopup = closeBetPopup;
 
-/* ==== Betting popup control wiring ==== */
+/* Popup controls */
 function wireBetModalControls() {
-  document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn => 
-    btn.addEventListener("click", () => { selectedDenom = +btn.dataset.balance; updatePopupTotal(); })
+  document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
+    btn.addEventListener("click", () => {
+      selectedDenom = +btn.dataset.balance;
+      updatePopupTotal();
+    })
   );
-  document.querySelectorAll(".bet-buttons.multipliers button[data-mult]").forEach(btn => 
-    btn.addEventListener("click", () => { selectedMultiplier = +btn.dataset.mult; updatePopupTotal(); })
+  document.querySelectorAll(".bet-buttons.multipliers button[data-mult]").forEach(btn =>
+    btn.addEventListener("click", () => {
+      selectedMultiplier = +btn.dataset.mult;
+      updatePopupTotal();
+    })
   );
   document.getElementById("qtyPlus").onclick = () => {
     document.getElementById("betQty").value = +document.getElementById("betQty").value + 1;
@@ -74,14 +82,12 @@ function wireBetModalControls() {
   document.getElementById("cancelBet").onclick = closeBetPopup;
   document.getElementById("placeBet").onclick = handlePlaceBet;
 }
-
-/* ==== Update total amount in popup ==== */
 function updatePopupTotal() {
   const qty = +document.getElementById("betQty").value || 1;
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-/* ==== Place bet ==== */
+/* Place a bet */
 async function handlePlaceBet() {
   const qty = Number(document.getElementById("betQty")?.value || 1);
   const amount = selectedDenom * qty * selectedMultiplier;
@@ -101,14 +107,14 @@ async function handlePlaceBet() {
   loadMyHistory();
 }
 
-/* ==== Wallet ==== */
+/* Wallet balance */
 async function fetchWalletBalance() {
   const r = await fetch(`${apiUrl}/api/users/wallet/${encodeURIComponent(currentEmail)}`);
   const d = await r.json();
   document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
 }
 
-/* ==== Current round + smooth timer ==== */
+/* Current round info */
 async function fetchCurrentRound() {
   const r = await fetch(`${apiUrl}/api/rounds`);
   const rounds = await r.json();
@@ -119,14 +125,14 @@ async function fetchCurrentRound() {
   document.getElementById("roundId").textContent = round.roundId;
 }
 
-/* Local countdown update every second */
+/* Local countdown update every sec */
 setInterval(() => {
   if (!roundEndTime) return;
   let rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
   document.getElementById("timeDigits").textContent = `00:${String(rem).padStart(2, "0")}`;
 }, 1000);
 
-/* ==== Game history ==== */
+/* Game history */
 async function loadGameHistory() {
   const r = await fetch(`${apiUrl}/api/rounds`);
   let rounds = await r.json();
@@ -135,7 +141,6 @@ async function loadGameHistory() {
   gameHistoryArr = rounds;
   renderGameHistoryPage();
 }
-
 function renderGameHistoryPage() {
   const cont = document.getElementById("gameHistory");
   const start = gamePage * itemsPerPage, end = start + itemsPerPage;
@@ -145,16 +150,21 @@ function renderGameHistoryPage() {
     const num = r.resultNumber ?? "-";
     const col = getWinGoColor(num);
     const bs = num === "-" ? "-" : (num >= 5 ? "Big" : "Small");
-    table.innerHTML += `<tr><td>${r.roundId}</td><td><span class="history-number ${col}">${num}</span></td><td>${bs}</td><td><span class="dot ${col}"></span></td></tr>`;
+    table.innerHTML += `<tr>
+      <td>${r.roundId}</td>
+      <td><span class="history-number ${col}">${num}</span></td>
+      <td>${bs}</td>
+      <td><span class="dot ${col}"></span></td>
+    </tr>`;
   });
-  const tot = Math.ceil(gameHistoryArr.length / itemsPerPage);
+  const tot = Math.ceil(gameHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("gameHistoryPagination").innerHTML =
     (gamePage > 0 ? `<button onclick="gamePage--;renderGameHistoryPage()">Prev</button>` : "") +
     ` Page ${gamePage + 1} of ${tot} ` +
     (gamePage < tot - 1 ? `<button onclick="gamePage++;renderGameHistoryPage()">Next</button>` : "");
 }
 
-/* ==== My history ==== */
+/* My history */
 async function loadMyHistory() {
   const [betsR, roundsR] = await Promise.all([
     fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`),
@@ -166,21 +176,22 @@ async function loadMyHistory() {
   myHistoryArr = bets.map(b => ({ ...b, round: roundMap.get(b.roundId) }));
   renderMyHistoryPage();
 }
-
 function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   const start = myPage * itemsPerPage, end = start + itemsPerPage;
-  cont.innerHTML = "";
+  cont.innerHTML = '';
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
+    const betValue = isNum ? b.numberBet : b.colorBet; // player's choice
+    const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
+
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
-    const roundColor = roundNumber != null ? getWinGoColor(roundNumber) : "pending";
-    const betColor = b.colorBet ? b.colorBet.toLowerCase() : null;
+    const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
 
     let statusClass, statusText;
     if (roundNumber == null) {
       statusClass = "pending"; statusText = "Pending";
-    } else if ((betColor && roundColor === betColor) || (isNum && b.numberBet === roundNumber)) {
+    } else if ((b.colorBet && roundColorClass === b.colorBet.toLowerCase()) || (isNum && b.numberBet === roundNumber)) {
       statusClass = "succeed"; statusText = "Succeed";
     } else {
       statusClass = "failed"; statusText = "Failed";
@@ -190,26 +201,27 @@ function renderMyHistoryPage() {
       statusClass === "failed" ? -(b.amount ?? 0) : 0;
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
 
-    cont.innerHTML += `<div class="my-history-item ${statusClass}">
-      <div class="color-box ${roundColor}"></div>
-      <div class="bet-number ${roundColor}">${roundNumber != null ? roundNumber : ""}</div>
-      <div style="min-width:105px;">
-        <div>${b.roundId}</div>
-        <div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN", { hour12: false }) : ""}</div>
-      </div>
-      <div class="status ${statusClass}">${statusText}</div>
-      <div class="amount ${statusClass}">${amtText}</div>
-    </div>`;
+    cont.innerHTML += `
+      <div class="my-history-item ${statusClass}">
+        <div class="color-box ${betColorClass}"></div>
+        <div class="bet-number ${betColorClass}">${isNum ? betValue : ''}</div>
+        <div style="min-width:105px;">
+          <div>${b.roundId}</div>
+          <div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN", { hour12: false }) : ""}</div>
+        </div>
+        <div class="bet-number ${roundColorClass}">${roundNumber != null ? roundNumber : ''}</div>
+        <div class="status ${statusClass}">${statusText}</div>
+        <div class="amount ${statusClass}">${amtText}</div>
+      </div>`;
   });
-
-  const tot = Math.ceil(myHistoryArr.length / itemsPerPage);
+  const tot = Math.ceil(myHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("myHistoryPagination").innerHTML =
     (myPage > 0 ? `<button onclick="myPage--;renderMyHistoryPage()">Prev</button>` : "") +
     ` Page ${myPage + 1} of ${tot} ` +
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
 
-/* ==== Init ==== */
+/* Init */
 document.addEventListener("DOMContentLoaded", () => {
   wireBetModalControls();
   fetchWalletBalance();
