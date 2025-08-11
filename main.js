@@ -1,5 +1,4 @@
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
-const currentEmail = localStorage.getItem("userEmail") || "user@example.com";
 let currentRoundId = "";
 let roundEndTime = null;
 let selectedBetType = null;
@@ -11,6 +10,10 @@ let myHistoryArr = [];
 let gamePage = 0;
 let myPage = 0;
 const itemsPerPage = 20;
+
+function getToken() {
+  return localStorage.getItem("token") || null;
+}
 
 /* Color mapping */
 function getWinGoColor(n) {
@@ -27,7 +30,6 @@ function showTab(id, btn) {
   document.getElementById(id).classList.remove("hidden");
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-
   document.getElementById("gameHistoryPagination").style.display = id === "gameHistory" ? "" : "none";
   document.getElementById("myHistoryPagination").style.display = id === "myHistory" ? "" : "none";
 }
@@ -89,40 +91,66 @@ function updatePopupTotal() {
 
 /* Place a bet */
 async function handlePlaceBet() {
+  const token = getToken();
+  if (!token) return alert("Please login to place bets");
   const qty = Number(document.getElementById("betQty")?.value || 1);
   const amount = selectedDenom * qty * selectedMultiplier;
+
   const payload = {
-    email: currentEmail,
-    roundId: currentRoundId,
-    amount,
     colorBet: selectedBetType === "color" ? selectedBetValue : null,
-    numberBet: selectedBetType === "number" ? Number(selectedBetValue) : null
+    numberBet: selectedBetType === "number" ? Number(selectedBetValue) : null,
+    amount
   };
-  await fetch(`${apiUrl}/api/bets`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const res = await fetch(`${apiUrl}/api/bets`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`Bet failed (${res.status})`);
+    const data = await res.json();
+    alert(`Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
+  } catch (err) {
+    console.error("Place bet error:", err.message);
+    alert("Unable to place bet: " + err.message);
+  }
   closeBetPopup();
   loadMyHistory();
 }
 
 /* Wallet balance */
 async function fetchWalletBalance() {
-  const r = await fetch(`${apiUrl}/api/users/wallet/${encodeURIComponent(currentEmail)}`);
-  const d = await r.json();
-  document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
+  const token = getToken();
+  if (!token) return;
+  try {
+    const r = await fetch(`${apiUrl}/api/user/wallet`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!r.ok) throw new Error(`Wallet fetch error (${r.status})`);
+    const d = await r.json();
+    document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 
 /* Current round info */
 async function fetchCurrentRound() {
-  const r = await fetch(`${apiUrl}/api/rounds`);
-  const rounds = await r.json();
-  if (!rounds.length) return;
-  const round = rounds[0];
-  currentRoundId = round.roundId;
-  roundEndTime = new Date(round.startTime).getTime() + 30000;
-  document.getElementById("roundId").textContent = round.roundId;
+  try {
+    const r = await fetch(`${apiUrl}/api/rounds`);
+    if (!r.ok) return;
+    const rounds = await r.json();
+    if (!rounds.length) return;
+    const round = rounds[0];
+    currentRoundId = round.roundId;
+    roundEndTime = new Date(round.startTime).getTime() + 30000;
+    document.getElementById("roundId").textContent = round.roundId;
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 
 /* Local countdown update every sec */
@@ -134,12 +162,17 @@ setInterval(() => {
 
 /* Game history */
 async function loadGameHistory() {
-  const r = await fetch(`${apiUrl}/api/rounds`);
-  let rounds = await r.json();
-  const seen = new Set();
-  rounds = rounds.filter(rr => !seen.has(rr.roundId) && seen.add(rr.roundId));
-  gameHistoryArr = rounds;
-  renderGameHistoryPage();
+  try {
+    const r = await fetch(`${apiUrl}/api/rounds`);
+    if (!r.ok) throw new Error("Game history error");
+    let rounds = await r.json();
+    const seen = new Set();
+    rounds = rounds.filter(rr => !seen.has(rr.roundId) && seen.add(rr.roundId));
+    gameHistoryArr = rounds;
+    renderGameHistoryPage();
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 function renderGameHistoryPage() {
   const cont = document.getElementById("gameHistory");
@@ -166,15 +199,23 @@ function renderGameHistoryPage() {
 
 /* My history */
 async function loadMyHistory() {
-  const [betsR, roundsR] = await Promise.all([
-    fetch(`${apiUrl}/api/bets/user/${encodeURIComponent(currentEmail)}`),
-    fetch(`${apiUrl}/api/rounds`)
-  ]);
-  const bets = await betsR.json();
-  const rounds = await roundsR.json();
-  const roundMap = new Map(rounds.map(r => [r.roundId, r]));
-  myHistoryArr = bets.map(b => ({ ...b, round: roundMap.get(b.roundId) }));
-  renderMyHistoryPage();
+  const token = getToken();
+  if (!token) return;
+  try {
+    const [betsR, roundsR] = await Promise.all([
+      fetch(`${apiUrl}/api/bets/user`, { headers: { "Authorization": `Bearer ${token}` } }),
+      fetch(`${apiUrl}/api/rounds`)
+    ]);
+    if (!betsR.ok) throw new Error(`History fetch error (${betsR.status})`);
+    if (!roundsR.ok) throw new Error(`Rounds fetch error (${roundsR.status})`);
+    const bets = await betsR.json();
+    const rounds = await roundsR.json();
+    const roundMap = new Map(rounds.map(r => [r.roundId, r]));
+    myHistoryArr = bets.map(b => ({ ...b, round: roundMap.get(b.roundId) }));
+    renderMyHistoryPage();
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
@@ -182,12 +223,10 @@ function renderMyHistoryPage() {
   cont.innerHTML = '';
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
-    const betValue = isNum ? b.numberBet : b.colorBet; // player's choice
+    const betValue = isNum ? b.numberBet : b.colorBet;
     const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
-
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
-
     let statusClass, statusText;
     if (roundNumber == null) {
       statusClass = "pending"; statusText = "Pending";
@@ -196,11 +235,9 @@ function renderMyHistoryPage() {
     } else {
       statusClass = "failed"; statusText = "Failed";
     }
-
     const net = statusClass === "succeed" ? ((b.amount ?? 0) + (b.profit ?? 0)) :
       statusClass === "failed" ? -(b.amount ?? 0) : 0;
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
-
     cont.innerHTML += `
       <div class="my-history-item ${statusClass}">
         <div class="color-box ${betColorClass}"></div>
