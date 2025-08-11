@@ -138,7 +138,8 @@ async function fetchWalletBalance() {
   if (!requireLogin()) return;
   const token = getToken();
   try {
-    const r = await fetch(`${apiUrl}/api/user/wallet`, {
+    // FIX: match backend route (/api/users/wallet)
+    const r = await fetch(`${apiUrl}/api/users/wallet`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!r.ok) throw new Error(`Wallet fetch error (${r.status})`);
