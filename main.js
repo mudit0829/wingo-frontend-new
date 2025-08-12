@@ -264,12 +264,13 @@ function renderMyHistoryPage() {
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
     const betValue = isNum ? b.numberBet : b.colorBet;
+    const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
 
-    // Determine round result number & color
+    // Actual round result (still needed for win/loss calculation)
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
 
-    // Status check
+    // Determine status
     let statusClass, statusText;
     if (roundNumber == null) {
       statusClass = "pending"; 
@@ -285,7 +286,7 @@ function renderMyHistoryPage() {
       statusText = "Failed";
     }
 
-    // Net win/loss calculation
+    // Profit/Loss amount
     const net = statusClass === "succeed"
       ? ((b.amount ?? 0) + (b.profit ?? 0))
       : statusClass === "failed"
@@ -293,11 +294,11 @@ function renderMyHistoryPage() {
         : 0;
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
 
-    // HTML output — circle now shows WINNING number (or "?" if pending)
+    // ✅ Now the colored circle shows the BET placed, not the round result
     cont.innerHTML += `
       <div class="my-history-item">
         <div class="my-history-left">
-          <div class="color-box ${roundColorClass}">${roundNumber != null ? roundNumber : '?'}</div>
+          <div class="color-box ${betColorClass}">${isNum ? betValue : ''}</div>
         </div>
         <div class="my-history-center">
           <div>${b.roundId}</div>
@@ -310,7 +311,7 @@ function renderMyHistoryPage() {
       </div>`;
   });
 
-  // Pagination
+  // Pagination controls
   const tot = Math.ceil(myHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("myHistoryPagination").innerHTML =
     (myPage > 0 ? `<button onclick="myPage--;renderMyHistoryPage()">Prev</button>` : "") +
