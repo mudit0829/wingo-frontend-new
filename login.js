@@ -1,3 +1,4 @@
+const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('loginBtn');
