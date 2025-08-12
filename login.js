@@ -44,7 +44,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     if (!res.ok) throw new Error(data.message || "Login failed");
     // Save token
     localStorage.setItem("token", data.token);
-    window.location.href = "index.html";
+    window.location.href = "index1.html";
   } catch (err) {
     alert(`❌ ${err.message}`);
   }
