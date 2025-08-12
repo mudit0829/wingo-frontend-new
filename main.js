@@ -20,6 +20,7 @@ const gameTypeMap = {
   "WinGo 5 Min": "WIN5"
 };
 
+// ===== Auth Helpers =====
 function getToken() { return localStorage.getItem("token") || null; }
 function requireLogin() { if (!getToken()) { window.location.href = "login.html"; return false; } return true; }
 async function authFetch(url, options = {}) {
@@ -31,6 +32,8 @@ async function authFetch(url, options = {}) {
   return res;
 }
 function logout() { localStorage.clear(); window.location.href = "login.html"; }
+
+// ===== Utility =====
 function getWinGoColor(n) {
   n = Number(n);
   if (n === 0 || n === 5) return "violet";
@@ -39,16 +42,26 @@ function getWinGoColor(n) {
   return "";
 }
 
-// ========== Bet triggers ==========
+// ===== Tab Content Switch =====
+function showTab(id, btn) {
+  document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("gameHistoryPagination").style.display = id === "gameHistory" ? "" : "none";
+  document.getElementById("myHistoryPagination").style.display = id === "myHistory" ? "" : "none";
+}
+window.showTab = showTab; // expose for HTML onclick
+
+// ===== Bet triggers =====
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
-// expose globally for HTML onclick
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
 
-// ========== Multiplier selection ==========
+// ===== Multiplier selection =====
 function selectMultiplier(m) {
   document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
   const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
@@ -58,38 +71,24 @@ function selectMultiplier(m) {
   updatePopupTotal();
 }
 
-// ========== Bet popup ==========
+// ===== Betting Popup =====
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
   const header = document.getElementById("betHeader");
-
-  if (t === "color" || t === "number") {
-    header.className = "bet-header " + getWinGoColor(c);
-  } else {
-    header.className = "bet-header";
-  }
-
+  header.className = (t === "color" || t === "number") ? "bet-header " + getWinGoColor(c) : "bet-header";
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
-  selectedMultiplier = 1;
-  selectedDenom = 1;
+  selectedMultiplier = 1; selectedDenom = 1;
   document.getElementById("betQty").value = 1;
-
-  document.querySelectorAll(".multiplier-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.textContent.trim() === "X1");
-  });
-  document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn => {
-    btn.classList.remove("active");
-    if (btn.dataset.balance === "1") btn.classList.add("active");
-  });
-
+  document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.toggle("active", btn.textContent.trim() === "X1"));
+  document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn => btn.classList.toggle("active", btn.dataset.balance === "1"));
   updatePopupTotal();
   document.getElementById("betModal").classList.remove("hidden");
 }
 function closeBetPopup() { document.getElementById("betModal").classList.add("hidden"); }
 window.closeBetPopup = closeBetPopup;
 
-// ========== Popup controls ==========
+// ===== Wire Popup Controls =====
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
@@ -115,7 +114,7 @@ function updatePopupTotal() {
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-// ========== Place bet ==========
+// ===== Place Bet =====
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -143,18 +142,18 @@ async function handlePlaceBet() {
   closeBetPopup();
 }
 
-// ========== Wallet ==========
+// ===== Wallet =====
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
     const r = await authFetch(`${apiUrl}/api/users/wallet`);
-    if (!r || !r.ok) throw 0;
+    if (!r.ok) throw 0;
     const d = await r.json();
     document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
   } catch {}
 }
 
-// ========== Current round via fast endpoint ==========
+// ===== Current Round (fast endpoint) =====
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
@@ -167,7 +166,7 @@ async function fetchCurrentRound() {
   } catch (err) { console.error(err.message); }
 }
 
-// Timer Countdown
+// ===== Timer countdown =====
 setInterval(() => {
   if (!roundEndTime) return;
   const rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
@@ -175,7 +174,7 @@ setInterval(() => {
     `${String(Math.floor(rem / 60)).padStart(2, "0")}:${String(rem % 60).padStart(2, "0")}`;
 }, 1000);
 
-// ========== Game History ==========
+// ===== Game History =====
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -200,7 +199,7 @@ function renderGameHistoryPage() {
   });
 }
 
-// ========== My History ==========
+// ===== My History =====
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -231,7 +230,9 @@ function renderMyHistoryPage() {
           (b.bigSmallBet === "Small" && roundNumber <= 4)))) statusClass = "succeed";
       else statusClass = "failed";
     }
-    let net = statusClass === "succeed" ? (isNum ? (b.contractAmount ?? b.amount) * 9 : (b.contractAmount ?? b.amount) * 2) : statusClass === "failed" ? -(b.amount ?? 0) : 0;
+    let net = statusClass === "succeed"
+      ? (isNum ? (b.contractAmount ?? b.amount) * 9 : (b.contractAmount ?? b.amount) * 2)
+      : statusClass === "failed" ? -(b.amount ?? 0) : 0;
     cont.innerHTML += `<div class="my-history-item">
       <div class="my-history-left"><div class="color-box ${betColorClass}">${isNum || isBS ? betValue : ''}</div></div>
       <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div></div>
@@ -240,14 +241,14 @@ function renderMyHistoryPage() {
   });
 }
 
-// ========== Init ==========
+// ===== Init =====
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   wireBetModalControls();
   fetchWalletBalance(); fetchCurrentRound(); loadGameHistory(); loadMyHistory();
 
-  // Tab (game type) click handler
+  // Tab click for game types + clock image change
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => {
