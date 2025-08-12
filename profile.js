@@ -1,16 +1,12 @@
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
-// On load, show email and wallet amount
 document.addEventListener("DOMContentLoaded", async () => {
-  // Show the logged-in user's email at top
   const token = localStorage.getItem("token");
   if (!token) return window.location.href = 'login.html';
 
-  // Example: get user's email from backend or local storage
-  // (You may need to fetch user profile depending on your system)
+  // Try getting user email from backend (otherwise fallback to local storage)
   let email = localStorage.getItem("userEmail");
   if (!email) {
-    // Try to fetch email from backend
     try {
       const res = await fetch(`${apiUrl}/api/users/me`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -24,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   document.getElementById("profileEmail").textContent = email || "(No email)";
 
-  // Wallet
+  // Wallet value
   try {
     const r = await fetch(`${apiUrl}/api/users/wallet`, {
       headers: { "Authorization": `Bearer ${token}` }
@@ -35,13 +31,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch {}
 
-  // Logout Handler
+  // Logout
   document.getElementById("logoutBtn").onclick = () => {
     localStorage.clear();
     window.location.href = "login.html";
   };
 
-  // Example Handlers — link to your game/transaction/deposit pages
+  // Navigation handlers
   window.openDeposit = () => window.location.href = "deposit.html";
   window.openWithdraw = () => window.location.href = "withdraw.html";
   window.openGameHistory = () => window.location.href = "game-history.html";
