@@ -130,7 +130,7 @@ async function handlePlaceBet() {
     if (!res || !res.ok) throw new Error((await res.json()).message || "Bet failed");
     const data = await res.json();
     alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
-    fetchWalletBalance(); // refresh wallet UI immediately
+    fetchWalletBalance(); // refresh wallet UI immediately after deduct
     loadMyHistory();
   } catch (err) {
     alert(`❌ ${err.message}`);
@@ -208,7 +208,12 @@ async function loadMyHistory() {
     const roundMap = new Map(rounds.map(r => [r.roundId, r]));
     myHistoryArr = bets.map(b => ({ ...b, round: roundMap.get(b.roundId) }));
     renderMyHistoryPage();
-  } catch {}
+
+    // 🔹 Refresh wallet after updating history so wins show up in balance
+    fetchWalletBalance();
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory"); cont.innerHTML = '';
@@ -244,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
   wireBetModalControls();
   fetchWalletBalance(); fetchCurrentRound(); loadGameHistory(); loadMyHistory();
 
-  // Game type tab click + clock icon
+  // Game type tab click + clock icon toggle
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => {
