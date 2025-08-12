@@ -266,7 +266,7 @@ function renderMyHistoryPage() {
     const betValue = isNum ? b.numberBet : b.colorBet;
     const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
 
-    // Actual round result (still needed for win/loss calculation)
+    // Actual round result used for win/loss logic
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
 
@@ -286,15 +286,23 @@ function renderMyHistoryPage() {
       statusText = "Failed";
     }
 
-    // Profit/Loss amount
-    const net = statusClass === "succeed"
-      ? ((b.amount ?? 0) + (b.profit ?? 0))
-      : statusClass === "failed"
-        ? -(b.amount ?? 0)
-        : 0;
+    // Net WIN/LOSE calculation (CORRECTED)
+    let net;
+    if (statusClass === "succeed") {
+      if (b.numberBet != null) {
+        // Number bet win: contractAmount × 9
+        net = (b.contractAmount ?? (b.amount ?? 0)) * 9;
+      } else {
+        // Color bet win: contractAmount × 2  (adjust multiplier here if your color payout is different)
+        net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
+      }
+    } else if (statusClass === "failed") {
+      net = -(b.amount ?? 0);
+    } else {
+      net = 0;
+    }
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
 
-    // ✅ Now the colored circle shows the BET placed, not the round result
     cont.innerHTML += `
       <div class="my-history-item">
         <div class="my-history-left">
@@ -318,6 +326,7 @@ function renderMyHistoryPage() {
     ` Page ${myPage + 1} of ${tot} ` +
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
+
  
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
