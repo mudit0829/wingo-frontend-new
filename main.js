@@ -13,7 +13,7 @@ const gameTypeMap = {
   "WinGo 5 Min": "WIN5"
 };
 
-// ==== Auth / Utility ====
+// == Auth / Utility ==
 function getToken() { return localStorage.getItem("token") || null; }
 function requireLogin() { if (!getToken()) { window.location.href = "login.html"; return false; } return true; }
 async function authFetch(url, options = {}) {
@@ -33,7 +33,7 @@ function getWinGoColor(n) {
   return "";
 }
 
-// ==== Tab switching ====
+// == Tab switching ==
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -44,7 +44,7 @@ function showTab(id, btn) {
 }
 window.showTab = showTab;
 
-// ==== Bet triggers ====
+// == Bet triggers ==
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
@@ -52,7 +52,7 @@ window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
 
-// ==== Multiplier selection ====
+// == Multiplier selection ==
 function selectMultiplier(m) {
   document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
   const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
@@ -62,12 +62,16 @@ function selectMultiplier(m) {
   updatePopupTotal();
 }
 
-// ==== Bet popup ====
+// == Bet popup ==
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
   const header = document.getElementById("betHeader");
-  header.className = (t === "color" || t === "number") ? "bet-header " + getWinGoColor(c) : "bet-header";
+  if (t === "color" || t === "number") {
+    header.className = "bet-header " + getWinGoColor(c);
+  } else {
+    header.className = "bet-header";
+  }
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
   selectedMultiplier = 1; selectedDenom = 1;
   document.getElementById("betQty").value = 1;
@@ -79,7 +83,7 @@ function openBetPopup(t, c) {
 function closeBetPopup() { document.getElementById("betModal").classList.add("hidden"); }
 window.closeBetPopup = closeBetPopup;
 
-// ==== Popup controls ====
+// == Popup controls ==
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
@@ -105,7 +109,7 @@ function updatePopupTotal() {
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-// ==== Place bet ====
+// == Place bet ==
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -134,7 +138,7 @@ async function handlePlaceBet() {
   closeBetPopup();
 }
 
-// ==== Wallet ====
+// == Wallet ==
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -145,7 +149,7 @@ async function fetchWalletBalance() {
   } catch {}
 }
 
-// ==== Current round ====
+// == Current round ==
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
@@ -158,7 +162,7 @@ async function fetchCurrentRound() {
   } catch (err) { console.error(err.message); }
 }
 
-// ==== Countdown ====
+// == Countdown ==
 setInterval(() => {
   if (!roundEndTime) return;
   const rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
@@ -166,7 +170,7 @@ setInterval(() => {
     `${String(Math.floor(rem / 60)).padStart(2, "0")}:${String(rem % 60).padStart(2, "0")}`;
 }, 1000);
 
-// ==== Game history ====
+// == Game history ==
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -191,7 +195,7 @@ function renderGameHistoryPage() {
   });
 }
 
-// ==== My history (trust backend result) ====
+// == My history (trust backend result) ==
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -200,7 +204,7 @@ async function loadMyHistory() {
     const bets = await betsR.json();
     myHistoryArr = bets;
     renderMyHistoryPage();
-    fetchWalletBalance(); // also refresh wallet after wins/losses update
+    fetchWalletBalance(); // refresh wallet after win/loss updates
   } catch {}
 }
 function renderMyHistoryPage() {
@@ -222,13 +226,12 @@ function renderMyHistoryPage() {
   });
 }
 
-// ==== Init ====
+// == Init ==
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   wireBetModalControls();
   fetchWalletBalance(); fetchCurrentRound(); loadGameHistory(); loadMyHistory();
-
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => {
@@ -244,7 +247,6 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchCurrentRound(); loadGameHistory(); loadMyHistory();
     });
   });
-
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
