@@ -264,11 +264,12 @@ function renderMyHistoryPage() {
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
     const betValue = isNum ? b.numberBet : b.colorBet;
-    const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
 
+    // Determine round result number & color
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
 
+    // Status check
     let statusClass, statusText;
     if (roundNumber == null) {
       statusClass = "pending"; 
@@ -284,22 +285,23 @@ function renderMyHistoryPage() {
       statusText = "Failed";
     }
 
+    // Net win/loss calculation
     const net = statusClass === "succeed"
       ? ((b.amount ?? 0) + (b.profit ?? 0))
       : statusClass === "failed"
         ? -(b.amount ?? 0)
         : 0;
-
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
 
+    // HTML output — circle now shows WINNING number (or "?" if pending)
     cont.innerHTML += `
       <div class="my-history-item">
         <div class="my-history-left">
-          <div class="color-box ${betColorClass}">${isNum ? betValue : ''}</div>
+          <div class="color-box ${roundColorClass}">${roundNumber != null ? roundNumber : '?'}</div>
         </div>
         <div class="my-history-center">
           <div>${b.roundId}</div>
-          <div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN", { hour12: false }) : ""}</div>
+          <div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div>
         </div>
         <div class="my-history-right">
           <div class="status ${statusClass}">${statusText}</div>
@@ -308,13 +310,14 @@ function renderMyHistoryPage() {
       </div>`;
   });
 
+  // Pagination
   const tot = Math.ceil(myHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("myHistoryPagination").innerHTML =
     (myPage > 0 ? `<button onclick="myPage--;renderMyHistoryPage()">Prev</button>` : "") +
     ` Page ${myPage + 1} of ${tot} ` +
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
-  
+ 
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
