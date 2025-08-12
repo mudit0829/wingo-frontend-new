@@ -152,34 +152,64 @@ body {
 .history-number.violet { color: #9b59b6; }
 
 /* ====== MY HISTORY ====== */
+/* == MY HISTORY == */
 .my-history-item {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #181818; border-radius: 10px; padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #181818;
+  border-radius: 16px;
+  padding: 12px 16px;
   margin-bottom: 10px;
-  font-weight: normal; /* regular weight */
-}
-.my-history-item div,
-.bet-number,
-.status,
-.amount {
-  font-weight: normal !important; /* force regular font weight */
 }
 
-.color-box { width: 28px; height: 28px; border-radius: 7px; margin-right: 8px; }
+.my-history-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 14px;
+}
 .color-box.red { background: #e74c3c; }
 .color-box.green { background: #2ecc71; }
 .color-box.violet { background: #9b59b6; }
-.color-box.pending { background: #ffd700; }
+.color-box.pending { background: #ffd700; color: #000; }
 
-.bet-number { font-size: 19px; margin-right: 12px; }
-.bet-number.red { color: #e74c3c; }
-.bet-number.green { color: #2ecc71; }
-.bet-number.violet { color: #9b59b6; }
-.bet-number.pending { color: #ffd700; }
+.bet-value {
+  font-size: 16px;
+  font-weight: bold;
+}
 
-.status.succeed, .amount.succeed { color: #2ecc71; }
-.status.failed, .amount.failed { color: #e74c3c; }
-.status.pending, .amount.pending { color: #ffd700; }
+.my-history-center {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.my-history-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.status.succeed { color: #2ecc71; font-weight: bold; }
+.status.failed { color: #e74c3c; font-weight: bold; }
+.status.pending { color: #ffd700; font-weight: bold; }
+
+.amount.succeed { color: #2ecc71; font-weight: bold; }
+.amount.failed { color: #e74c3c; font-weight: bold; }
+.amount.pending { color: #ffd700; font-weight: bold; }
 
 /* ====== BET MODAL ====== */
 .bet-modal {
