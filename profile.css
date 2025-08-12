@@ -1,0 +1,104 @@
+body.profile-bg {
+  background: #181818;
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-box {
+  background: #222;
+  border-radius: 24px;
+  padding: 32px 18px 24px 18px;
+  min-width: 320px;
+  max-width: 370px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.14);
+}
+.profile-top {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.profile-logo {
+  width: 70px;
+  height: auto;
+  margin-bottom: 10px;
+}
+.profile-user {
+  font-size: 1.05em;
+}
+.profile-label {
+  color: #f9e27b;
+  font-weight: 500;
+}
+.profile-email {
+  color: #fff;
+  font-weight: 600;
+}
+.profile-wallet-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 28px 0 24px 0;
+  gap: 13px;
+}
+.profile-card {
+  background: #292929;
+  border-radius: 14px;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  padding: 16px 7px 11px 7px;
+  box-shadow: 0 2px 11px rgba(30,10,10,0.06);
+  cursor: pointer;
+  transition: background 0.19s;
+}
+.profile-card:active {
+  background: #343400;
+}
+.profile-card-title {
+  margin-top: 4px;
+  font-size: 0.93em;
+  color: #e1b254;
+  letter-spacing: 0.01em;
+}
+.profile-card-value {
+  font-size: 1.09em;
+  color: #ffd76c;
+  font-weight: 600;
+  margin-top: 5px;
+}
+.profile-card-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  background-color: #f9e27b;
+  display: inline-block; margin-bottom: 2px;
+}
+.wallet-icon { background: url('assets/wallet.png') no-repeat center/16px, #f9e27b; }
+.deposit-icon { background: url('assets/deposit.png') no-repeat center/14px, #e1b254; }
+.withdraw-icon { background: url('assets/withdraw.png') no-repeat center/14px, #e1b254; }
+
+.profile-history-row {
+  margin: 12px 0 18px 0;
+  display: flex; flex-direction: column; gap: 11px;
+}
+.profile-history-btn {
+  width: 100%; padding: 12px 0; border: none; border-radius: 11px;
+  background: #232323; color: #ffd76c;
+  font-size: 1.08em; font-weight: 500; cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.16s;
+}
+.profile-history-btn:active { background: #242200; color: #f9e27b; }
+
+.profile-logout-btn {
+  width: 100%; margin-top: 22px; padding: 10px 0;
+  border-radius: 11px; border: none;
+  background: linear-gradient(90deg,#f9e27b,#e4b159); color: #222;
+  font-size: 1.08em; font-weight: 600; cursor: pointer;
+  box-shadow: 0 1px 10px #e1b25430;
+  transition: background 0.13s;
+}
+.profile-logout-btn:active { background: #ffd76c; color: #e1b254; }
+
+@media (max-width: 480px) {
+  .profile-box { width: 97vw; padding: 18px 4vw 17px 4vw; }
+}
