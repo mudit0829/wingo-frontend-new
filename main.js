@@ -260,43 +260,61 @@ function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   const start = myPage * itemsPerPage, end = start + itemsPerPage;
   cont.innerHTML = '';
+
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
     const betValue = isNum ? b.numberBet : b.colorBet;
     const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
+
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
+
     let statusClass, statusText;
     if (roundNumber == null) {
-      statusClass = "pending"; statusText = "Pending";
-    } else if ((b.colorBet && roundColorClass === b.colorBet.toLowerCase()) || (isNum && b.numberBet === roundNumber)) {
-      statusClass = "succeed"; statusText = "Succeed";
+      statusClass = "pending"; 
+      statusText = "Pending";
+    } else if (
+      (b.colorBet && roundColorClass === b.colorBet.toLowerCase()) ||
+      (isNum && b.numberBet === roundNumber)
+    ) {
+      statusClass = "succeed"; 
+      statusText = "Succeed";
     } else {
-      statusClass = "failed"; statusText = "Failed";
+      statusClass = "failed"; 
+      statusText = "Failed";
     }
-    const net = statusClass === "succeed" ? ((b.amount ?? 0) + (b.profit ?? 0)) :
-      statusClass === "failed" ? -(b.amount ?? 0) : 0;
+
+    const net = statusClass === "succeed"
+      ? ((b.amount ?? 0) + (b.profit ?? 0))
+      : statusClass === "failed"
+        ? -(b.amount ?? 0)
+        : 0;
+
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
+
     cont.innerHTML += `
-      <div class="my-history-item ${statusClass}">
-        <div class="color-box ${betColorClass}"></div>
-        <div class="bet-number ${betColorClass}">${isNum ? betValue : ''}</div>
-        <div style="min-width:105px;">
+      <div class="my-history-item">
+        <div class="my-history-left">
+          <div class="color-box ${betColorClass}">${isNum ? betValue : ''}</div>
+        </div>
+        <div class="my-history-center">
           <div>${b.roundId}</div>
           <div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN", { hour12: false }) : ""}</div>
         </div>
-        <div class="bet-number ${roundColorClass}">${roundNumber != null ? roundNumber : ''}</div>
-        <div class="status ${statusClass}">${statusText}</div>
-        <div class="amount ${statusClass}">${amtText}</div>
+        <div class="my-history-right">
+          <div class="status ${statusClass}">${statusText}</div>
+          <div class="amount ${statusClass}">${amtText}</div>
+        </div>
       </div>`;
   });
+
   const tot = Math.ceil(myHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("myHistoryPagination").innerHTML =
     (myPage > 0 ? `<button onclick="myPage--;renderMyHistoryPage()">Prev</button>` : "") +
     ` Page ${myPage + 1} of ${tot} ` +
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
-
+  
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
