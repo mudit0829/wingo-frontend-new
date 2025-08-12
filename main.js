@@ -195,7 +195,7 @@ function renderGameHistoryPage() {
   });
 }
 
-// == My history (use win & netAmount) ==
+// == My history ==
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -210,12 +210,18 @@ function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   cont.innerHTML = '';
   myHistoryArr.forEach(b => {
-    let statusClass, statusText;
+    let statusClass, statusText, amountText;
     if (b.win === true) { statusClass = "succeed"; statusText = "Succeed"; }
     else if (b.win === false) { statusClass = "failed"; statusText = "Failed"; }
     else { statusClass = "pending"; statusText = "Pending"; }
 
-    const net = b.netAmount ?? 0;
+    if (statusClass === "pending") {
+      amountText = "₹0.00";
+    } else {
+      const net = b.netAmount ?? 0;
+      amountText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
+    }
+
     const betValue = b.numberBet != null ? b.numberBet : (b.bigSmallBet || b.colorBet);
     const betColorClass = b.numberBet != null ? getWinGoColor(betValue) :
       b.bigSmallBet ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
@@ -225,7 +231,7 @@ function renderMyHistoryPage() {
       <div class="my-history-item">
         <div class="my-history-left"><div class="color-box ${betColorClass}">${b.numberBet != null || b.bigSmallBet != null ? betValue : ''}</div></div>
         <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div></div>
-        <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${net>=0?'+':'-'}₹${Math.abs(net).toFixed(2)}</div></div>
+        <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${amountText}</div></div>
       </div>`;
   });
 }
