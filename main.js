@@ -6,7 +6,7 @@ let selectedBetType = null;
 let selectedBetValue = null;
 let selectedDenom = 1;
 let selectedMultiplier = 1;
-let selectedGameType = "WIN30"; // default game mode
+let selectedGameType = "WIN30";
 let gameHistoryArr = [];
 let myHistoryArr = [];
 let gamePage = 0;
@@ -23,23 +23,14 @@ const gameTypeMap = {
 function getToken() {
   return localStorage.getItem("token") || null;
 }
-
 function requireLogin() {
   const token = getToken();
-  if (!token) {
-    window.location.href = "login.html";
-    return false;
-  }
+  if (!token) { window.location.href = "login.html"; return false; }
   return true;
 }
-
-// Fetch wrapper
 async function authFetch(url, options = {}) {
   const token = getToken();
-  if (!token) {
-    window.location.href = "login.html";
-    return;
-  }
+  if (!token) { window.location.href = "login.html"; return; }
   options.headers = { ...(options.headers || {}), "Authorization": `Bearer ${token}` };
   const res = await fetch(url, options);
   if (res.status === 401) {
@@ -50,14 +41,11 @@ async function authFetch(url, options = {}) {
   }
   return res;
 }
-
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("userEmail");
   window.location.href = "login.html";
 }
-
-/* Color mapping */
 function getWinGoColor(n) {
   n = Number(n);
   if (n === 0 || n === 5) return "violet";
@@ -65,8 +53,6 @@ function getWinGoColor(n) {
   if ([2, 4, 6, 8].includes(n)) return "red";
   return "";
 }
-
-/* Tabs (chart/history) */
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -75,20 +61,24 @@ function showTab(id, btn) {
   document.getElementById("gameHistoryPagination").style.display = id === "gameHistory" ? "" : "none";
   document.getElementById("myHistoryPagination").style.display = id === "myHistory" ? "" : "none";
 }
-
-/* Bet popup triggers */
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
+
+// ✅ Multiplier selection fix
 function selectMultiplier(m) {
+  document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
+  const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
+  if (btn) btn.classList.add("active");
   selectedMultiplier = Number(m.replace("X", "")) || 1;
+  selectedDenom = selectedMultiplier;
   updatePopupTotal();
 }
+
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
 
-/* Bet popup */
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
@@ -101,13 +91,22 @@ function openBetPopup(t, c) {
   }
 
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
-  selectedDenom = 1;
   selectedMultiplier = 1;
+  selectedDenom = 1;
   document.getElementById("betQty").value = 1;
+
+  document.querySelectorAll(".multiplier-btn").forEach(btn => {
+    if (btn.textContent.trim() === "X1") btn.classList.add("active");
+    else btn.classList.remove("active");
+  });
+  document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn => {
+    btn.classList.remove("active");
+    if (btn.dataset.balance === "1") btn.classList.add("active");
+  });
+
   updatePopupTotal();
   document.getElementById("betModal").classList.remove("hidden");
 }
-
 function closeBetPopup() {
   document.getElementById("betModal").classList.add("hidden");
 }
@@ -116,14 +115,15 @@ window.closeBetPopup = closeBetPopup;
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
+      document.querySelectorAll(".bet-buttons button[data-balance]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
       selectedDenom = +btn.dataset.balance;
       updatePopupTotal();
     })
   );
   document.querySelectorAll(".bet-buttons.multipliers button[data-mult]").forEach(btn =>
     btn.addEventListener("click", () => {
-      selectedMultiplier = +btn.dataset.mult;
-      updatePopupTotal();
+      selectMultiplier('X' + btn.dataset.mult);
     })
   );
   document.getElementById("qtyPlus").onclick = () => {
@@ -142,13 +142,10 @@ function updatePopupTotal() {
   const qty = +document.getElementById("betQty").value || 1;
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
-
-/* Place bet */
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
   const amount = selectedDenom * qty * selectedMultiplier;
-
   const payload = {
     gameType: selectedGameType,
     colorBet: selectedBetType === "color" ? selectedBetValue : null,
@@ -156,7 +153,6 @@ async function handlePlaceBet() {
     bigSmallBet: selectedBetType === "bigSmall" ? selectedBetValue : null,
     amount
   };
-
   try {
     const res = await authFetch(`${apiUrl}/api/bets`, {
       method: "POST",
@@ -180,8 +176,6 @@ async function handlePlaceBet() {
   }
   closeBetPopup();
 }
-
-/* Wallet */
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -193,8 +187,6 @@ async function fetchWalletBalance() {
     console.error(err.message);
   }
 }
-
-/* Current round */
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -209,7 +201,6 @@ async function fetchCurrentRound() {
     console.error(err.message);
   }
 }
-
 function getRoundDuration(type) {
   switch (type) {
     case "WIN1": return 60000;
@@ -218,8 +209,6 @@ function getRoundDuration(type) {
     default: return 30000;
   }
 }
-
-/* Countdown */
 setInterval(() => {
   if (!roundEndTime) return;
   const rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
@@ -227,8 +216,6 @@ setInterval(() => {
   const ss = String(rem % 60).padStart(2, "0");
   document.getElementById("timeDigits").textContent = `${mm}:${ss}`;
 }, 1000);
-
-/* Game history */
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -242,7 +229,6 @@ async function loadGameHistory() {
     console.error(err.message);
   }
 }
-
 function renderGameHistoryPage() {
   const cont = document.getElementById("gameHistory");
   const start = gamePage * itemsPerPage, end = start + itemsPerPage;
@@ -265,8 +251,6 @@ function renderGameHistoryPage() {
     ` Page ${gamePage + 1} of ${tot} ` +
     (gamePage < tot - 1 ? `<button onclick="gamePage++;renderGameHistoryPage()">Next</button>` : "");
 }
-
-/* My history */
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -284,7 +268,6 @@ async function loadMyHistory() {
     console.error(err.message);
   }
 }
-
 function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   const start = myPage * itemsPerPage, end = start + itemsPerPage;
@@ -299,30 +282,22 @@ function renderMyHistoryPage() {
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
     let statusClass, statusText;
-    if (roundNumber == null) {
-      statusClass = "pending"; statusText = "Pending";
-    } else if (
+    if (roundNumber == null) { statusClass = "pending"; statusText = "Pending"; }
+    else if (
       (b.colorBet && roundColorClass === b.colorBet.toLowerCase()) ||
       (isNum && b.numberBet === roundNumber) ||
       (isBigSmall && (
         (b.bigSmallBet === "Big" && roundNumber >= 5) ||
         (b.bigSmallBet === "Small" && roundNumber <= 4)
       ))
-    ) {
-      statusClass = "succeed"; statusText = "Succeed";
-    } else {
-      statusClass = "failed"; statusText = "Failed";
-    }
+    ) { statusClass = "succeed"; statusText = "Succeed"; }
+    else { statusClass = "failed"; statusText = "Failed"; }
     let net;
     if (statusClass === "succeed") {
       if (isNum) net = (b.contractAmount ?? (b.amount ?? 0)) * 9;
-      else if (isBigSmall) net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
       else net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
-    } else if (statusClass === "failed") {
-      net = -(b.amount ?? 0);
-    } else {
-      net = 0;
-    }
+    } else if (statusClass === "failed") net = -(b.amount ?? 0);
+    else net = 0;
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
     cont.innerHTML += `
       <div class="my-history-item">
@@ -346,7 +321,6 @@ function renderMyHistoryPage() {
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
 
-/* On page load */
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
@@ -356,11 +330,18 @@ document.addEventListener("DOMContentLoaded", () => {
   loadGameHistory();
   loadMyHistory();
 
-  // Handle game type tab clicks
+  // ✅ Clock icon swap fix
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
-      document.querySelectorAll(".round-tabs .tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".round-tabs .tab").forEach(t => {
+        t.classList.remove("active");
+        const img = t.querySelector("img");
+        if (img) img.src = "assets/clock-inactive.png";
+      });
       this.classList.add("active");
+      const img = this.querySelector("img");
+      if (img) img.src = "assets/clock-active.png";
+
       const label = this.querySelector("span").innerText.trim();
       document.querySelector(".game-type").innerText = label;
       selectedGameType = gameTypeMap[label] || "WIN30";
