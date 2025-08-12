@@ -2,14 +2,11 @@ const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
 let currentRoundId = "";
 let roundEndTime = null;
-
 let selectedBetType = null;
 let selectedBetValue = null;
 let selectedDenom = 1;
 let selectedMultiplier = 1;
-
 let selectedGameType = "WIN30"; // default game mode
-
 let gameHistoryArr = [];
 let myHistoryArr = [];
 let gamePage = 0;
@@ -69,7 +66,7 @@ function getWinGoColor(n) {
   return "";
 }
 
-/* Tabs (chart/history view) */
+/* Tabs (chart/history) */
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -83,8 +80,10 @@ function showTab(id, btn) {
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
-function selectMultiplier(m) { selectedMultiplier = Number(m.replace("X", "")) || 1; updatePopupTotal(); }
-
+function selectMultiplier(m) {
+  selectedMultiplier = Number(m.replace("X", "")) || 1;
+  updatePopupTotal();
+}
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
@@ -94,11 +93,13 @@ function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
   const header = document.getElementById("betHeader");
+
   if (t === "color" || t === "number") {
     header.className = "bet-header " + getWinGoColor(c);
   } else if (t === "bigSmall") {
     header.className = "bet-header";
   }
+
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
   selectedDenom = 1;
   selectedMultiplier = 1;
@@ -149,14 +150,13 @@ async function handlePlaceBet() {
   const amount = selectedDenom * qty * selectedMultiplier;
 
   const payload = {
-    gameType: selectedGameType, // ✅ include current game type
+    gameType: selectedGameType,
     colorBet: selectedBetType === "color" ? selectedBetValue : null,
     numberBet: selectedBetType === "number" ? Number(selectedBetValue) : null,
     bigSmallBet: selectedBetType === "bigSmall" ? selectedBetValue : null,
     amount
   };
 
-  console.log("Placing bet with payload:", payload);
   try {
     const res = await authFetch(`${apiUrl}/api/bets`, {
       method: "POST",
@@ -219,10 +219,10 @@ function getRoundDuration(type) {
   }
 }
 
-// Timer
+/* Countdown */
 setInterval(() => {
   if (!roundEndTime) return;
-  let rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
+  const rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
   const mm = String(Math.floor(rem / 60)).padStart(2, "0");
   const ss = String(rem % 60).padStart(2, "0");
   document.getElementById("timeDigits").textContent = `${mm}:${ss}`;
@@ -294,14 +294,13 @@ function renderMyHistoryPage() {
     const isBigSmall = b.bigSmallBet != null;
     const betValue = isNum ? b.numberBet : (isBigSmall ? b.bigSmallBet : b.colorBet);
     const betColorClass = isNum ? getWinGoColor(betValue) :
-                          isBigSmall ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
-                          (b.colorBet ? b.colorBet.toLowerCase() : '');
+        isBigSmall ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
+        (b.colorBet ? b.colorBet.toLowerCase() : '');
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
     let statusClass, statusText;
     if (roundNumber == null) {
-      statusClass = "pending"; 
-      statusText = "Pending";
+      statusClass = "pending"; statusText = "Pending";
     } else if (
       (b.colorBet && roundColorClass === b.colorBet.toLowerCase()) ||
       (isNum && b.numberBet === roundNumber) ||
@@ -310,11 +309,9 @@ function renderMyHistoryPage() {
         (b.bigSmallBet === "Small" && roundNumber <= 4)
       ))
     ) {
-      statusClass = "succeed";
-      statusText = "Succeed";
+      statusClass = "succeed"; statusText = "Succeed";
     } else {
-      statusClass = "failed";
-      statusText = "Failed";
+      statusClass = "failed"; statusText = "Failed";
     }
     let net;
     if (statusClass === "succeed") {
@@ -349,7 +346,7 @@ function renderMyHistoryPage() {
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
 
-// Attach round-tabs click handler
+/* On page load */
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
@@ -359,7 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadGameHistory();
   loadMyHistory();
 
-  // Tab switching for game modes
+  // Handle game type tab clicks
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => t.classList.remove("active"));
