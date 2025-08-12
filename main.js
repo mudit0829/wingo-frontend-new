@@ -24,7 +24,7 @@ function requireLogin() {
   return true;
 }
 
-// Universal fetch wrapper that auto-redirects on 401
+// Fetch wrapper with auto 401 handling
 async function authFetch(url, options = {}) {
   const token = getToken();
   if (!token) {
@@ -123,6 +123,7 @@ function updatePopupTotal() {
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
+/* Place a bet */
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -134,22 +135,35 @@ async function handlePlaceBet() {
     amount
   };
 
+  console.log("Placing bet with payload:", payload);
+
   try {
     const res = await authFetch(`${apiUrl}/api/bets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if (!res || !res.ok) throw new Error(`Bet failed`);
+
+    if (!res || !res.ok) {
+      let errMsg = `Bet failed (${res ? res.status : "no response"})`;
+      try {
+        const errData = await res.json();
+        if (errData.message) errMsg = errData.message;
+      } catch {}
+      throw new Error(errMsg);
+    }
+
     const data = await res.json();
-    alert(`Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
+    alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
     loadMyHistory();
   } catch (err) {
-    alert("Unable to place bet: " + err.message);
+    alert(`❌ Unable to place bet: ${err.message}`);
+    console.error("Place bet error:", err.message);
   }
   closeBetPopup();
 }
 
+/* Wallet balance */
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -162,6 +176,7 @@ async function fetchWalletBalance() {
   }
 }
 
+/* Current round info */
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds`);
@@ -177,12 +192,14 @@ async function fetchCurrentRound() {
   }
 }
 
+/* Local countdown update every sec */
 setInterval(() => {
   if (!roundEndTime) return;
   let rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
   document.getElementById("timeDigits").textContent = `00:${String(rem).padStart(2, "0")}`;
 }, 1000);
 
+/* Game history */
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds`);
@@ -220,6 +237,7 @@ function renderGameHistoryPage() {
     (gamePage < tot - 1 ? `<button onclick="gamePage++;renderGameHistoryPage()">Next</button>` : "");
 }
 
+/* My history */
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
