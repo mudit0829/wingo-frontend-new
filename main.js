@@ -13,7 +13,7 @@ const gameTypeMap = {
   "WinGo 5 Min": "WIN5"
 };
 
-// ---- Auth helpers ----
+// ==== Auth / Utility ====
 function getToken() { return localStorage.getItem("token") || null; }
 function requireLogin() { if (!getToken()) { window.location.href = "login.html"; return false; } return true; }
 async function authFetch(url, options = {}) {
@@ -25,8 +25,6 @@ async function authFetch(url, options = {}) {
   return res;
 }
 function logout() { localStorage.clear(); window.location.href = "login.html"; }
-
-// ---- Utility ----
 function getWinGoColor(n) {
   n = Number(n);
   if (n === 0 || n === 5) return "violet";
@@ -35,7 +33,7 @@ function getWinGoColor(n) {
   return "";
 }
 
-// ---- Tab switching ----
+// ==== Tab switching ====
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -46,7 +44,7 @@ function showTab(id, btn) {
 }
 window.showTab = showTab;
 
-// ---- Bet triggers ----
+// ==== Bet triggers ====
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
@@ -54,7 +52,7 @@ window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
 
-// ---- Multiplier ----
+// ==== Multiplier selection ====
 function selectMultiplier(m) {
   document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
   const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
@@ -64,7 +62,7 @@ function selectMultiplier(m) {
   updatePopupTotal();
 }
 
-// ---- Bet popup ----
+// ==== Bet popup ====
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
@@ -81,7 +79,7 @@ function openBetPopup(t, c) {
 function closeBetPopup() { document.getElementById("betModal").classList.add("hidden"); }
 window.closeBetPopup = closeBetPopup;
 
-// ---- Popup controls ----
+// ==== Popup controls ====
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
@@ -92,7 +90,7 @@ function wireBetModalControls() {
     })
   );
   document.querySelectorAll(".bet-buttons.multipliers button[data-mult]").forEach(btn =>
-    btn.addEventListener("click", () => { selectMultiplier('X' + btn.dataset.mult); })
+    btn.addEventListener("click", () => selectMultiplier('X' + btn.dataset.mult))
   );
   document.getElementById("qtyPlus").onclick = () => { document.getElementById("betQty").value++; updatePopupTotal(); };
   document.getElementById("qtyMinus").onclick = () => {
@@ -102,14 +100,12 @@ function wireBetModalControls() {
   document.getElementById("cancelBet").onclick = closeBetPopup;
   document.getElementById("placeBet").onclick = handlePlaceBet;
 }
-
-// ---- Amount calc ----
 function updatePopupTotal() {
   const qty = +document.getElementById("betQty").value || 1;
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-// ---- Place bet ----
+// ==== Place bet ====
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -130,7 +126,7 @@ async function handlePlaceBet() {
     if (!res || !res.ok) throw new Error((await res.json()).message || "Bet failed");
     const data = await res.json();
     alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
-    fetchWalletBalance(); // refresh wallet UI immediately after deduct
+    fetchWalletBalance(); // update immediately after deduct
     loadMyHistory();
   } catch (err) {
     alert(`❌ ${err.message}`);
@@ -138,7 +134,7 @@ async function handlePlaceBet() {
   closeBetPopup();
 }
 
-// ---- Wallet ----
+// ==== Wallet ====
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -149,7 +145,7 @@ async function fetchWalletBalance() {
   } catch {}
 }
 
-// ---- Current round ----
+// ==== Current round ====
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
@@ -162,7 +158,7 @@ async function fetchCurrentRound() {
   } catch (err) { console.error(err.message); }
 }
 
-// ---- Timer ----
+// ==== Countdown ====
 setInterval(() => {
   if (!roundEndTime) return;
   const rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
@@ -170,7 +166,7 @@ setInterval(() => {
     `${String(Math.floor(rem / 60)).padStart(2, "0")}:${String(rem % 60).padStart(2, "0")}`;
 }, 1000);
 
-// ---- Game history ----
+// ==== Game history ====
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -195,61 +191,44 @@ function renderGameHistoryPage() {
   });
 }
 
-// ---- My history ----
+// ==== My history (trust backend result) ====
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
-    const [betsR, roundsR] = await Promise.all([
-      authFetch(`${apiUrl}/api/bets/user?gameType=${selectedGameType}`),
-      fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`)
-    ]);
+    const betsR = await authFetch(`${apiUrl}/api/bets/user?gameType=${selectedGameType}`);
     if (!betsR.ok) return;
-    const bets = await betsR.json(), rounds = await roundsR.json();
-    const roundMap = new Map(rounds.map(r => [r.roundId, r]));
-    myHistoryArr = bets.map(b => ({ ...b, round: roundMap.get(b.roundId) }));
+    const bets = await betsR.json();
+    myHistoryArr = bets;
     renderMyHistoryPage();
-
-    // 🔹 Refresh wallet after updating history so wins show up in balance
-    fetchWalletBalance();
-  } catch (err) {
-    console.error(err.message);
-  }
+    fetchWalletBalance(); // also refresh wallet after wins/losses update
+  } catch {}
 }
 function renderMyHistoryPage() {
-  const cont = document.getElementById("myHistory"); cont.innerHTML = '';
+  const cont = document.getElementById("myHistory");
+  cont.innerHTML = '';
   myHistoryArr.forEach(b => {
-    const isNum = b.numberBet != null, isBS = b.bigSmallBet != null;
-    const betValue = isNum ? b.numberBet : isBS ? b.bigSmallBet : b.colorBet;
-    const betColorClass = isNum ? getWinGoColor(betValue) :
-        isBS ? (b.bigSmallBet === 'Big' ? 'red' : 'green') : (b.colorBet || '').toLowerCase();
-    const roundNumber = b.round?.resultNumber;
-    let statusClass = "pending";
-    if (roundNumber != null) {
-      if ((b.colorBet && betColorClass === b.colorBet.toLowerCase()) ||
-          (isNum && b.numberBet === roundNumber) ||
-          (isBS && ((b.bigSmallBet === "Big" && roundNumber >= 5) ||
-          (b.bigSmallBet === "Small" && roundNumber <= 4)))) statusClass = "succeed";
-      else statusClass = "failed";
-    }
-    let net = statusClass === "succeed"
-      ? (isNum ? (b.contractAmount ?? b.amount) * 9 : (b.contractAmount ?? b.amount) * 2)
-      : statusClass === "failed" ? -(b.amount ?? 0) : 0;
+    const statusClass = b.status ? b.status.toLowerCase() : 'pending';
+    const statusText = b.status || 'Pending';
+    const net = b.payout != null ? b.payout : (statusClass === 'failed' ? -(b.amount ?? 0) : 0);
+    const betValue = b.numberBet != null ? b.numberBet : (b.bigSmallBet || b.colorBet);
+    const betColorClass = b.numberBet != null ? getWinGoColor(betValue) :
+        b.bigSmallBet ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
+        (b.colorBet ? b.colorBet.toLowerCase() : '');
     cont.innerHTML += `<div class="my-history-item">
-      <div class="my-history-left"><div class="color-box ${betColorClass}">${isNum || isBS ? betValue : ''}</div></div>
+      <div class="my-history-left"><div class="color-box ${betColorClass}">${b.numberBet != null || b.bigSmallBet != null ? betValue : ''}</div></div>
       <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div></div>
-      <div class="my-history-right"><div class="status ${statusClass}">${statusClass[0].toUpperCase()+statusClass.slice(1)}</div><div class="amount ${statusClass}">${net>=0?'+':'-'}₹${Math.abs(net).toFixed(2)}</div></div>
+      <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${net>=0?'+':'-'}₹${Math.abs(net).toFixed(2)}</div></div>
     </div>`;
   });
 }
 
-// ---- Init ----
+// ==== Init ====
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   wireBetModalControls();
   fetchWalletBalance(); fetchCurrentRound(); loadGameHistory(); loadMyHistory();
 
-  // Game type tab click + clock icon toggle
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => {
@@ -258,8 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (img) img.src = "assets/clock-inactive.png";
       });
       this.classList.add("active");
-      const img = this.querySelector("img");
-      if (img) img.src = "assets/clock-active.png";
+      const img = this.querySelector("img"); if (img) img.src = "assets/clock-active.png";
       const label = this.querySelector("span").innerText.trim();
       document.querySelector(".game-type").innerText = label;
       selectedGameType = gameTypeMap[label] || "WIN30";
