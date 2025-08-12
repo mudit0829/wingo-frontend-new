@@ -17,20 +17,20 @@ async function login() {
     });
 
     if (!res.ok) {
-      if (res.status === 401) throw new Error("Invalid email or password");
-      throw new Error(`Login failed (${res.status})`);
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || `Login failed (${res.status})`);
     }
 
     const data = await res.json();
-    // Expected backend response: { token: "...", user: { email: "...", ... } }
 
+    // Store token & email
     localStorage.setItem("token", data.token);
     localStorage.setItem("userEmail", data.user.email);
 
     alert("Login successful!");
-    window.location.href = "index1.html"; // send to your game page
+    window.location.href = "index1.html";
   } catch (err) {
     console.error("Login error:", err.message);
-    alert(err.message);
+    alert("Login failed: " + err.message);
   }
 }
