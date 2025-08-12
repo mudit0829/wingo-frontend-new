@@ -24,7 +24,7 @@ function requireLogin() {
   return true;
 }
 
-// Fetch wrapper with auto 401 handling
+// Fetch wrapper
 async function authFetch(url, options = {}) {
   const token = getToken();
   if (!token) {
@@ -32,7 +32,6 @@ async function authFetch(url, options = {}) {
     return;
   }
   options.headers = { ...(options.headers || {}), "Authorization": `Bearer ${token}` };
-
   const res = await fetch(url, options);
   if (res.status === 401) {
     localStorage.removeItem("token");
@@ -71,16 +70,26 @@ function showTab(id, btn) {
 /* Bet popup triggers */
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
+// ✅ New Big/Small selector
+function selectBigSmall(v) { openBetPopup("bigSmall", v); }
 function selectMultiplier(m) { selectedMultiplier = Number(m.replace("X", "")) || 1; updatePopupTotal(); }
+
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
+window.selectBigSmall = selectBigSmall;
 
-/* Bet popup open / close */
+/* Bet popup */
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
   const header = document.getElementById("betHeader");
-  header.className = "bet-header " + getWinGoColor(c);
+
+  if (t === "color" || t === "number") {
+    header.className = "bet-header " + getWinGoColor(c);
+  } else if (t === "bigSmall") {
+    header.className = "bet-header";
+  }
+
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
   selectedDenom = 1;
   selectedMultiplier = 1;
@@ -88,6 +97,7 @@ function openBetPopup(t, c) {
   updatePopupTotal();
   document.getElementById("betModal").classList.remove("hidden");
 }
+
 function closeBetPopup() {
   document.getElementById("betModal").classList.add("hidden");
 }
@@ -123,7 +133,7 @@ function updatePopupTotal() {
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-/* Place a bet */
+/* Place bet */
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -132,18 +142,17 @@ async function handlePlaceBet() {
   const payload = {
     colorBet: selectedBetType === "color" ? selectedBetValue : null,
     numberBet: selectedBetType === "number" ? Number(selectedBetValue) : null,
+    bigSmallBet: selectedBetType === "bigSmall" ? selectedBetValue : null, // ✅ new
     amount
   };
 
   console.log("Placing bet with payload:", payload);
-
   try {
     const res = await authFetch(`${apiUrl}/api/bets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
     if (!res || !res.ok) {
       let errMsg = `Bet failed (${res ? res.status : "no response"})`;
       try {
@@ -152,7 +161,6 @@ async function handlePlaceBet() {
       } catch {}
       throw new Error(errMsg);
     }
-
     const data = await res.json();
     alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
     loadMyHistory();
@@ -163,7 +171,7 @@ async function handlePlaceBet() {
   closeBetPopup();
 }
 
-/* Wallet balance */
+/* Wallet */
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -176,7 +184,7 @@ async function fetchWalletBalance() {
   }
 }
 
-/* Current round info */
+/* Current round */
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds`);
@@ -192,7 +200,7 @@ async function fetchCurrentRound() {
   }
 }
 
-/* Local countdown update every sec */
+// Timer
 setInterval(() => {
   if (!roundEndTime) return;
   let rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
@@ -263,37 +271,44 @@ function renderMyHistoryPage() {
 
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
-    const betValue = isNum ? b.numberBet : b.colorBet;
-    const betColorClass = isNum ? getWinGoColor(betValue) : (b.colorBet ? b.colorBet.toLowerCase() : '');
+    const isBigSmall = b.bigSmallBet != null;
+    const betValue = isNum ? b.numberBet : (isBigSmall ? b.bigSmallBet : b.colorBet);
+    const betColorClass = isNum
+      ? getWinGoColor(betValue)
+      : isBigSmall
+        ? (b.bigSmallBet === 'Big' ? 'red' : 'green')
+        : (b.colorBet ? b.colorBet.toLowerCase() : '');
 
-    // Actual round result used for win/loss logic
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
 
-    // Determine status
     let statusClass, statusText;
     if (roundNumber == null) {
       statusClass = "pending"; 
       statusText = "Pending";
     } else if (
       (b.colorBet && roundColorClass === b.colorBet.toLowerCase()) ||
-      (isNum && b.numberBet === roundNumber)
+      (isNum && b.numberBet === roundNumber) ||
+      (isBigSmall && (
+        (b.bigSmallBet === "Big" && roundNumber >= 5) ||
+        (b.bigSmallBet === "Small" && roundNumber <= 4)
+      ))
     ) {
-      statusClass = "succeed"; 
+      statusClass = "succeed";
       statusText = "Succeed";
     } else {
-      statusClass = "failed"; 
+      statusClass = "failed";
       statusText = "Failed";
     }
 
-    // Net WIN/LOSE calculation (CORRECTED)
+    // Net calculation
     let net;
     if (statusClass === "succeed") {
-      if (b.numberBet != null) {
-        // Number bet win: contractAmount × 9
+      if (isNum) {
         net = (b.contractAmount ?? (b.amount ?? 0)) * 9;
+      } else if (isBigSmall) {
+        net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
       } else {
-        // Color bet win: contractAmount × 2  (adjust multiplier here if your color payout is different)
         net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
       }
     } else if (statusClass === "failed") {
@@ -301,12 +316,13 @@ function renderMyHistoryPage() {
     } else {
       net = 0;
     }
+
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
 
     cont.innerHTML += `
       <div class="my-history-item">
         <div class="my-history-left">
-          <div class="color-box ${betColorClass}">${isNum ? betValue : ''}</div>
+          <div class="color-box ${betColorClass}">${isNum || isBigSmall ? betValue : ''}</div>
         </div>
         <div class="my-history-center">
           <div>${b.roundId}</div>
@@ -319,7 +335,6 @@ function renderMyHistoryPage() {
       </div>`;
   });
 
-  // Pagination controls
   const tot = Math.ceil(myHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("myHistoryPagination").innerHTML =
     (myPage > 0 ? `<button onclick="myPage--;renderMyHistoryPage()">Prev</button>` : "") +
@@ -327,7 +342,6 @@ function renderMyHistoryPage() {
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
 
- 
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
