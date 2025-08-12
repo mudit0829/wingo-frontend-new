@@ -67,11 +67,14 @@ function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
   const header = document.getElementById("betHeader");
+
+  // fix: use === instead of =
   if (t === "color" || t === "number") {
     header.className = "bet-header " + getWinGoColor(c);
   } else {
     header.className = "bet-header";
   }
+
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
   selectedMultiplier = 1; selectedDenom = 1;
   document.getElementById("betQty").value = 1;
@@ -131,7 +134,7 @@ async function handlePlaceBet() {
     const data = await res.json();
     alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
     fetchWalletBalance(); // update immediately after deduct
-    loadMyHistory();
+    loadMyHistory(); // refresh My History immediately
   } catch (err) {
     alert(`❌ ${err.message}`);
   }
@@ -195,7 +198,7 @@ function renderGameHistoryPage() {
   });
 }
 
-// == My history (trust backend result) ==
+// == My history ==
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -204,7 +207,7 @@ async function loadMyHistory() {
     const bets = await betsR.json();
     myHistoryArr = bets;
     renderMyHistoryPage();
-    fetchWalletBalance(); // refresh wallet after win/loss updates
+    fetchWalletBalance(); // update wallet each time history refreshes
   } catch {}
 }
 function renderMyHistoryPage() {
@@ -232,6 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   wireBetModalControls();
   fetchWalletBalance(); fetchCurrentRound(); loadGameHistory(); loadMyHistory();
+
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => {
@@ -247,6 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchCurrentRound(); loadGameHistory(); loadMyHistory();
     });
   });
+
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
