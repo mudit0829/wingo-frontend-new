@@ -185,11 +185,6 @@ body {
 .color-box.violet { background: #9b59b6; }
 .color-box.pending { background: #ffd700; color: #000; }
 
-.bet-value {
-  font-size: 16px;
-  font-weight: bold;
-}
-
 .my-history-center {
   display: flex;
   flex-direction: column;
