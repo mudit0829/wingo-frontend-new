@@ -1,15 +1,27 @@
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
+
 let currentRoundId = "";
 let roundEndTime = null;
+
 let selectedBetType = null;
 let selectedBetValue = null;
 let selectedDenom = 1;
 let selectedMultiplier = 1;
+
+let selectedGameType = "WIN30"; // default game mode
+
 let gameHistoryArr = [];
 let myHistoryArr = [];
 let gamePage = 0;
 let myPage = 0;
 const itemsPerPage = 20;
+
+const gameTypeMap = {
+  "WinGo 30sec": "WIN30",
+  "WinGo 1 Min": "WIN1",
+  "WinGo 3 Min": "WIN3",
+  "WinGo 5 Min": "WIN5"
+};
 
 function getToken() {
   return localStorage.getItem("token") || null;
@@ -57,7 +69,7 @@ function getWinGoColor(n) {
   return "";
 }
 
-/* Tabs */
+/* Tabs (chart/history view) */
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -70,7 +82,6 @@ function showTab(id, btn) {
 /* Bet popup triggers */
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
-// ✅ New Big/Small selector
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
 function selectMultiplier(m) { selectedMultiplier = Number(m.replace("X", "")) || 1; updatePopupTotal(); }
 
@@ -83,13 +94,11 @@ function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
   const header = document.getElementById("betHeader");
-
   if (t === "color" || t === "number") {
     header.className = "bet-header " + getWinGoColor(c);
   } else if (t === "bigSmall") {
     header.className = "bet-header";
   }
-
   document.getElementById("betChoiceText").textContent = `Select ${c}`;
   selectedDenom = 1;
   selectedMultiplier = 1;
@@ -140,9 +149,10 @@ async function handlePlaceBet() {
   const amount = selectedDenom * qty * selectedMultiplier;
 
   const payload = {
+    gameType: selectedGameType, // ✅ include current game type
     colorBet: selectedBetType === "color" ? selectedBetValue : null,
     numberBet: selectedBetType === "number" ? Number(selectedBetValue) : null,
-    bigSmallBet: selectedBetType === "bigSmall" ? selectedBetValue : null, // ✅ new
+    bigSmallBet: selectedBetType === "bigSmall" ? selectedBetValue : null,
     amount
   };
 
@@ -187,16 +197,25 @@ async function fetchWalletBalance() {
 /* Current round */
 async function fetchCurrentRound() {
   try {
-    const r = await fetch(`${apiUrl}/api/rounds`);
+    const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
     if (!r.ok) return;
     const rounds = await r.json();
     if (!rounds.length) return;
     const round = rounds[0];
     currentRoundId = round.roundId;
-    roundEndTime = new Date(round.startTime).getTime() + 30000;
+    roundEndTime = new Date(round.startTime).getTime() + getRoundDuration(selectedGameType);
     document.getElementById("roundId").textContent = round.roundId;
   } catch (err) {
     console.error(err.message);
+  }
+}
+
+function getRoundDuration(type) {
+  switch (type) {
+    case "WIN1": return 60000;
+    case "WIN3": return 180000;
+    case "WIN5": return 300000;
+    default: return 30000;
   }
 }
 
@@ -204,13 +223,15 @@ async function fetchCurrentRound() {
 setInterval(() => {
   if (!roundEndTime) return;
   let rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
-  document.getElementById("timeDigits").textContent = `00:${String(rem).padStart(2, "0")}`;
+  const mm = String(Math.floor(rem / 60)).padStart(2, "0");
+  const ss = String(rem % 60).padStart(2, "0");
+  document.getElementById("timeDigits").textContent = `${mm}:${ss}`;
 }, 1000);
 
 /* Game history */
 async function loadGameHistory() {
   try {
-    const r = await fetch(`${apiUrl}/api/rounds`);
+    const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
     if (!r.ok) throw new Error("Game history error");
     let rounds = await r.json();
     const seen = new Set();
@@ -250,8 +271,8 @@ async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
     const [betsR, roundsR] = await Promise.all([
-      authFetch(`${apiUrl}/api/bets/user`),
-      fetch(`${apiUrl}/api/rounds`)
+      authFetch(`${apiUrl}/api/bets/user?gameType=${selectedGameType}`),
+      fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`)
     ]);
     if (!betsR || !betsR.ok) throw new Error("History fetch failed");
     const bets = await betsR.json();
@@ -268,20 +289,15 @@ function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   const start = myPage * itemsPerPage, end = start + itemsPerPage;
   cont.innerHTML = '';
-
   myHistoryArr.slice(start, end).forEach(b => {
     const isNum = b.numberBet != null;
     const isBigSmall = b.bigSmallBet != null;
     const betValue = isNum ? b.numberBet : (isBigSmall ? b.bigSmallBet : b.colorBet);
-    const betColorClass = isNum
-      ? getWinGoColor(betValue)
-      : isBigSmall
-        ? (b.bigSmallBet === 'Big' ? 'red' : 'green')
-        : (b.colorBet ? b.colorBet.toLowerCase() : '');
-
+    const betColorClass = isNum ? getWinGoColor(betValue) :
+                          isBigSmall ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
+                          (b.colorBet ? b.colorBet.toLowerCase() : '');
     const roundNumber = b.round?.resultNumber != null ? b.round.resultNumber : null;
     const roundColorClass = roundNumber != null ? getWinGoColor(roundNumber) : 'pending';
-
     let statusClass, statusText;
     if (roundNumber == null) {
       statusClass = "pending"; 
@@ -300,25 +316,17 @@ function renderMyHistoryPage() {
       statusClass = "failed";
       statusText = "Failed";
     }
-
-    // Net calculation
     let net;
     if (statusClass === "succeed") {
-      if (isNum) {
-        net = (b.contractAmount ?? (b.amount ?? 0)) * 9;
-      } else if (isBigSmall) {
-        net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
-      } else {
-        net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
-      }
+      if (isNum) net = (b.contractAmount ?? (b.amount ?? 0)) * 9;
+      else if (isBigSmall) net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
+      else net = (b.contractAmount ?? (b.amount ?? 0)) * 2;
     } else if (statusClass === "failed") {
       net = -(b.amount ?? 0);
     } else {
       net = 0;
     }
-
     const amtText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
-
     cont.innerHTML += `
       <div class="my-history-item">
         <div class="my-history-left">
@@ -334,7 +342,6 @@ function renderMyHistoryPage() {
         </div>
       </div>`;
   });
-
   const tot = Math.ceil(myHistoryArr.length / itemsPerPage) || 1;
   document.getElementById("myHistoryPagination").innerHTML =
     (myPage > 0 ? `<button onclick="myPage--;renderMyHistoryPage()">Prev</button>` : "") +
@@ -342,6 +349,7 @@ function renderMyHistoryPage() {
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
 
+// Attach round-tabs click handler
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
@@ -350,6 +358,21 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchCurrentRound();
   loadGameHistory();
   loadMyHistory();
+
+  // Tab switching for game modes
+  document.querySelectorAll(".round-tabs .tab").forEach(tab => {
+    tab.addEventListener("click", function () {
+      document.querySelectorAll(".round-tabs .tab").forEach(t => t.classList.remove("active"));
+      this.classList.add("active");
+      const label = this.querySelector("span").innerText.trim();
+      document.querySelector(".game-type").innerText = label;
+      selectedGameType = gameTypeMap[label] || "WIN30";
+      fetchCurrentRound();
+      loadGameHistory();
+      loadMyHistory();
+    });
+  });
+
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
