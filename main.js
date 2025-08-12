@@ -1,16 +1,9 @@
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
-let currentRoundId = "";
-let roundEndTime = null;
-let selectedBetType = null;
-let selectedBetValue = null;
-let selectedDenom = 1;
-let selectedMultiplier = 1;
-let selectedGameType = "WIN30";
-let gameHistoryArr = [];
-let myHistoryArr = [];
-let gamePage = 0;
-let myPage = 0;
+let currentRoundId = "", roundEndTime = null, selectedBetType = null, selectedBetValue = null;
+let selectedDenom = 1, selectedMultiplier = 1, selectedGameType = "WIN30";
+let gameHistoryArr = [], myHistoryArr = [];
+let gamePage = 0, myPage = 0;
 const itemsPerPage = 20;
 
 const gameTypeMap = {
@@ -20,7 +13,7 @@ const gameTypeMap = {
   "WinGo 5 Min": "WIN5"
 };
 
-// ===== Auth Helpers =====
+// ---- Auth helpers ----
 function getToken() { return localStorage.getItem("token") || null; }
 function requireLogin() { if (!getToken()) { window.location.href = "login.html"; return false; } return true; }
 async function authFetch(url, options = {}) {
@@ -33,7 +26,7 @@ async function authFetch(url, options = {}) {
 }
 function logout() { localStorage.clear(); window.location.href = "login.html"; }
 
-// ===== Utility =====
+// ---- Utility ----
 function getWinGoColor(n) {
   n = Number(n);
   if (n === 0 || n === 5) return "violet";
@@ -42,7 +35,7 @@ function getWinGoColor(n) {
   return "";
 }
 
-// ===== Tab Content Switch =====
+// ---- Tab switching ----
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
@@ -51,9 +44,9 @@ function showTab(id, btn) {
   document.getElementById("gameHistoryPagination").style.display = id === "gameHistory" ? "" : "none";
   document.getElementById("myHistoryPagination").style.display = id === "myHistory" ? "" : "none";
 }
-window.showTab = showTab; // expose for HTML onclick
+window.showTab = showTab;
 
-// ===== Bet triggers =====
+// ---- Bet triggers ----
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
@@ -61,7 +54,7 @@ window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
 
-// ===== Multiplier selection =====
+// ---- Multiplier ----
 function selectMultiplier(m) {
   document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
   const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
@@ -71,7 +64,7 @@ function selectMultiplier(m) {
   updatePopupTotal();
 }
 
-// ===== Betting Popup =====
+// ---- Bet popup ----
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
@@ -88,7 +81,7 @@ function openBetPopup(t, c) {
 function closeBetPopup() { document.getElementById("betModal").classList.add("hidden"); }
 window.closeBetPopup = closeBetPopup;
 
-// ===== Wire Popup Controls =====
+// ---- Popup controls ----
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
@@ -109,12 +102,14 @@ function wireBetModalControls() {
   document.getElementById("cancelBet").onclick = closeBetPopup;
   document.getElementById("placeBet").onclick = handlePlaceBet;
 }
+
+// ---- Amount calc ----
 function updatePopupTotal() {
   const qty = +document.getElementById("betQty").value || 1;
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-// ===== Place Bet =====
+// ---- Place bet ----
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -134,7 +129,8 @@ async function handlePlaceBet() {
     });
     if (!res || !res.ok) throw new Error((await res.json()).message || "Bet failed");
     const data = await res.json();
-    alert(`✅ Bet placed! Wallet: ₹${data.newWalletBalance}`);
+    alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
+    fetchWalletBalance(); // refresh wallet UI immediately
     loadMyHistory();
   } catch (err) {
     alert(`❌ ${err.message}`);
@@ -142,7 +138,7 @@ async function handlePlaceBet() {
   closeBetPopup();
 }
 
-// ===== Wallet =====
+// ---- Wallet ----
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -153,7 +149,7 @@ async function fetchWalletBalance() {
   } catch {}
 }
 
-// ===== Current Round (fast endpoint) =====
+// ---- Current round ----
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
@@ -166,7 +162,7 @@ async function fetchCurrentRound() {
   } catch (err) { console.error(err.message); }
 }
 
-// ===== Timer countdown =====
+// ---- Timer ----
 setInterval(() => {
   if (!roundEndTime) return;
   const rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
@@ -174,7 +170,7 @@ setInterval(() => {
     `${String(Math.floor(rem / 60)).padStart(2, "0")}:${String(rem % 60).padStart(2, "0")}`;
 }, 1000);
 
-// ===== Game History =====
+// ---- Game history ----
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -199,7 +195,7 @@ function renderGameHistoryPage() {
   });
 }
 
-// ===== My History =====
+// ---- My history ----
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -241,14 +237,14 @@ function renderMyHistoryPage() {
   });
 }
 
-// ===== Init =====
+// ---- Init ----
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
   wireBetModalControls();
   fetchWalletBalance(); fetchCurrentRound(); loadGameHistory(); loadMyHistory();
 
-  // Tab click for game types + clock image change
+  // Game type tab click + clock icon
   document.querySelectorAll(".round-tabs .tab").forEach(tab => {
     tab.addEventListener("click", function () {
       document.querySelectorAll(".round-tabs .tab").forEach(t => {
@@ -257,7 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (img) img.src = "assets/clock-inactive.png";
       });
       this.classList.add("active");
-      const img = this.querySelector("img"); if (img) img.src = "assets/clock-active.png";
+      const img = this.querySelector("img");
+      if (img) img.src = "assets/clock-active.png";
       const label = this.querySelector("span").innerText.trim();
       document.querySelector(".game-type").innerText = label;
       selectedGameType = gameTypeMap[label] || "WIN30";
