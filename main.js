@@ -11,19 +11,42 @@ let gamePage = 0;
 let myPage = 0;
 const itemsPerPage = 20;
 
-// Get token from localStorage
 function getToken() {
   return localStorage.getItem("token") || null;
 }
 
-// Redirect to login if not logged in
 function requireLogin() {
-  if (!getToken()) {
-    alert("Please login first.");
+  const token = getToken();
+  if (!token) {
     window.location.href = "login.html";
     return false;
   }
   return true;
+}
+
+// Universal fetch wrapper that auto-redirects on 401
+async function authFetch(url, options = {}) {
+  const token = getToken();
+  if (!token) {
+    window.location.href = "login.html";
+    return;
+  }
+  options.headers = { ...(options.headers || {}), "Authorization": `Bearer ${token}` };
+
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
+    window.location.href = "login.html";
+    return;
+  }
+  return res;
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("userEmail");
+  window.location.href = "login.html";
 }
 
 /* Color mapping */
@@ -70,7 +93,6 @@ function closeBetPopup() {
 }
 window.closeBetPopup = closeBetPopup;
 
-/* Popup controls */
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
@@ -101,10 +123,8 @@ function updatePopupTotal() {
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
 
-/* Place a bet */
 async function handlePlaceBet() {
   if (!requireLogin()) return;
-  const token = getToken();
   const qty = Number(document.getElementById("betQty")?.value || 1);
   const amount = selectedDenom * qty * selectedMultiplier;
 
@@ -113,36 +133,28 @@ async function handlePlaceBet() {
     numberBet: selectedBetType === "number" ? Number(selectedBetValue) : null,
     amount
   };
+
   try {
-    const res = await fetch(`${apiUrl}/api/bets`, {
+    const res = await authFetch(`${apiUrl}/api/bets`, {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error(`Bet failed (${res.status})`);
+    if (!res || !res.ok) throw new Error(`Bet failed`);
     const data = await res.json();
     alert(`Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
+    loadMyHistory();
   } catch (err) {
-    console.error("Place bet error:", err.message);
     alert("Unable to place bet: " + err.message);
   }
   closeBetPopup();
-  loadMyHistory();
 }
 
-/* Wallet balance */
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
-  const token = getToken();
   try {
-    // FIX: match backend route (/api/users/wallet)
-    const r = await fetch(`${apiUrl}/api/users/wallet`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    if (!r.ok) throw new Error(`Wallet fetch error (${r.status})`);
+    const r = await authFetch(`${apiUrl}/api/users/wallet`);
+    if (!r || !r.ok) throw new Error("Wallet fetch failed");
     const d = await r.json();
     document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
   } catch (err) {
@@ -150,7 +162,6 @@ async function fetchWalletBalance() {
   }
 }
 
-/* Current round info */
 async function fetchCurrentRound() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds`);
@@ -166,14 +177,12 @@ async function fetchCurrentRound() {
   }
 }
 
-/* Local countdown update every sec */
 setInterval(() => {
   if (!roundEndTime) return;
   let rem = Math.max(0, Math.floor((roundEndTime - Date.now()) / 1000));
   document.getElementById("timeDigits").textContent = `00:${String(rem).padStart(2, "0")}`;
 }, 1000);
 
-/* Game history */
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds`);
@@ -211,17 +220,14 @@ function renderGameHistoryPage() {
     (gamePage < tot - 1 ? `<button onclick="gamePage++;renderGameHistoryPage()">Next</button>` : "");
 }
 
-/* My history */
 async function loadMyHistory() {
   if (!requireLogin()) return;
-  const token = getToken();
   try {
     const [betsR, roundsR] = await Promise.all([
-      fetch(`${apiUrl}/api/bets/user`, { headers: { "Authorization": `Bearer ${token}` } }),
+      authFetch(`${apiUrl}/api/bets/user`),
       fetch(`${apiUrl}/api/rounds`)
     ]);
-    if (!betsR.ok) throw new Error(`History fetch error (${betsR.status})`);
-    if (!roundsR.ok) throw new Error(`Rounds fetch error (${roundsR.status})`);
+    if (!betsR || !betsR.ok) throw new Error("History fetch failed");
     const bets = await betsR.json();
     const rounds = await roundsR.json();
     const roundMap = new Map(rounds.map(r => [r.roundId, r]));
@@ -273,9 +279,9 @@ function renderMyHistoryPage() {
     (myPage < tot - 1 ? `<button onclick="myPage++;renderMyHistoryPage()">Next</button>` : "");
 }
 
-/* Init */
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
   wireBetModalControls();
   fetchWalletBalance();
   fetchCurrentRound();
