@@ -1,9 +1,7 @@
 const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
-let currentRoundId = "", roundEndTime = null;
-let selectedBetType = null, selectedBetValue = null;
-let selectedDenom = 1, selectedMultiplier = 1;
-let selectedGameType = "WIN30";
+let currentRoundId = "", roundEndTime = null, selectedBetType = null, selectedBetValue = null;
+let selectedDenom = 1, selectedMultiplier = 1, selectedGameType = "WIN30";
 let gameHistoryArr = [], myHistoryArr = [];
 let gamePage = 0, myPage = 0;
 const itemsPerPage = 20;
@@ -17,16 +15,16 @@ const gameTypeMap = {
 
 // == Auth / Utility ==
 function getToken() { return localStorage.getItem("token") || null; }
-function requireLogin() { if (!getToken()) { location.href = "login.html"; return false; } return true; }
+function requireLogin() { if (!getToken()) { window.location.href = "login.html"; return false; } return true; }
 async function authFetch(url, options = {}) {
   const token = getToken();
-  if (!token) { location.href = "login.html"; return; }
+  if (!token) { window.location.href = "login.html"; return; }
   options.headers = { ...(options.headers || {}), "Authorization": `Bearer ${token}` };
   const res = await fetch(url, options);
-  if (res.status === 401) { localStorage.clear(); location.href = "login.html"; return; }
+  if (res.status === 401) { localStorage.clear(); window.location.href = "login.html"; return; }
   return res;
 }
-function logout() { localStorage.clear(); location.href = "login.html"; }
+function logout() { localStorage.clear(); window.location.href = "login.html"; }
 function getWinGoColor(n) {
   n = Number(n);
   if (n === 0 || n === 5) return "violet";
@@ -54,7 +52,7 @@ window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
 
-// == Multiplier ==
+// == Multiplier selection ==
 function selectMultiplier(m) {
   document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
   const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
@@ -66,7 +64,8 @@ function selectMultiplier(m) {
 
 // == Bet popup ==
 function openBetPopup(t, c) {
-  selectedBetType = t; selectedBetValue = c;
+  selectedBetType = t;
+  selectedBetValue = c;
   const header = document.getElementById("betHeader");
   if (t === "color" || t === "number") {
     header.className = "bet-header " + getWinGoColor(c);
@@ -89,7 +88,9 @@ function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
       document.querySelectorAll(".bet-buttons button[data-balance]").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active"); selectedDenom = +btn.dataset.balance; updatePopupTotal();
+      btn.classList.add("active");
+      selectedDenom = +btn.dataset.balance;
+      updatePopupTotal();
     })
   );
   document.querySelectorAll(".bet-buttons.multipliers button[data-mult]").forEach(btn =>
@@ -97,7 +98,8 @@ function wireBetModalControls() {
   );
   document.getElementById("qtyPlus").onclick = () => { document.getElementById("betQty").value++; updatePopupTotal(); };
   document.getElementById("qtyMinus").onclick = () => {
-    document.getElementById("betQty").value = Math.max(1, +document.getElementById("betQty").value - 1); updatePopupTotal();
+    document.getElementById("betQty").value = Math.max(1, +document.getElementById("betQty").value - 1);
+    updatePopupTotal();
   };
   document.getElementById("cancelBet").onclick = closeBetPopup;
   document.getElementById("placeBet").onclick = handlePlaceBet;
@@ -121,14 +123,18 @@ async function handlePlaceBet() {
   };
   try {
     const res = await authFetch(`${apiUrl}/api/bets`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
     if (!res || !res.ok) throw new Error((await res.json()).message || "Bet failed");
     const data = await res.json();
     alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
     fetchWalletBalance();
     loadMyHistory();
-  } catch (err) { alert(`❌ ${err.message}`); }
+  } catch (err) {
+    alert(`❌ ${err.message}`);
+  }
   closeBetPopup();
 }
 
@@ -180,9 +186,7 @@ function renderGameHistoryPage() {
   const cont = document.getElementById("gameHistory");
   cont.innerHTML = `<table class="history-table"><tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr></table>`;
   gameHistoryArr.forEach(r => {
-    const num = r.resultNumber ?? "-";
-    const col = getWinGoColor(num);
-    const bs = num === "-" ? "-" : (num >= 5 ? "Big" : "Small");
+    const num = r.resultNumber ?? "-", col = getWinGoColor(num), bs = num === "-" ? "-" : (num >= 5 ? "Big" : "Small");
     cont.querySelector("table").innerHTML += `<tr>
       <td>${r.roundId}</td>
       <td><span class="history-number ${col}">${num}</span></td>
@@ -191,14 +195,13 @@ function renderGameHistoryPage() {
   });
 }
 
-// == My history ==
+// == My history (use win & netAmount) ==
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
     const betsR = await authFetch(`${apiUrl}/api/bets/user?gameType=${selectedGameType}`);
     if (!betsR.ok) return;
-    const bets = await betsR.json();
-    myHistoryArr = bets;
+    myHistoryArr = await betsR.json();
     renderMyHistoryPage();
     fetchWalletBalance();
   } catch {}
@@ -207,18 +210,23 @@ function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   cont.innerHTML = '';
   myHistoryArr.forEach(b => {
-    const statusClass = b.status ? b.status.toLowerCase() : 'pending';
-    const statusText = b.status || 'Pending';
-    const net = b.payout != null ? b.payout : (statusClass === 'failed' ? -(b.amount ?? 0) : 0);
+    let statusClass, statusText;
+    if (b.win === true) { statusClass = "succeed"; statusText = "Succeed"; }
+    else if (b.win === false) { statusClass = "failed"; statusText = "Failed"; }
+    else { statusClass = "pending"; statusText = "Pending"; }
+
+    const net = b.netAmount ?? 0;
     const betValue = b.numberBet != null ? b.numberBet : (b.bigSmallBet || b.colorBet);
     const betColorClass = b.numberBet != null ? getWinGoColor(betValue) :
       b.bigSmallBet ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
       (b.colorBet ? b.colorBet.toLowerCase() : '');
-    cont.innerHTML += `<div class="my-history-item">
-      <div class="my-history-left"><div class="color-box ${betColorClass}">${b.numberBet != null || b.bigSmallBet != null ? betValue : ''}</div></div>
-      <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div></div>
-      <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${net>=0?'+':'-'}₹${Math.abs(net).toFixed(2)}</div></div>
-    </div>`;
+
+    cont.innerHTML += `
+      <div class="my-history-item">
+        <div class="my-history-left"><div class="color-box ${betColorClass}">${b.numberBet != null || b.bigSmallBet != null ? betValue : ''}</div></div>
+        <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div></div>
+        <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${net>=0?'+':'-'}₹${Math.abs(net).toFixed(2)}</div></div>
+      </div>`;
   });
 }
 
@@ -239,7 +247,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (img) img.src = "assets/clock-inactive.png";
       });
       this.classList.add("active");
-      const img = this.querySelector("img"); if (img) img.src = "assets/clock-active.png";
+      const img = this.querySelector("img");
+      if (img) img.src = "assets/clock-active.png";
       const label = this.querySelector("span").innerText.trim();
       document.querySelector(".game-type").innerText = label;
       selectedGameType = gameTypeMap[label] || "WIN30";
