@@ -1,104 +1,154 @@
 body.profile-bg {
-  background: #181818;
+  background: #161618;
   margin: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
 }
-.profile-box {
-  background: #222;
-  border-radius: 24px;
-  padding: 32px 18px 24px 18px;
-  min-width: 320px;
-  max-width: 370px;
-  box-shadow: 0 6px 30px rgba(0,0,0,0.14);
+.profile-outer {
+  max-width: 385px;
+  width: 100vw;
+  margin: 32px 0;
+  background: #222226;
+  border-radius: 26px;
+  padding: 0 0 22px 0;
+  box-shadow: 0 6px 30px rgba(30, 30, 30, .18);
 }
-.profile-top {
+.profile-header {
   text-align: center;
-  margin-bottom: 15px;
+  padding: 28px 0 8px 0;
+  border-radius: 26px 26px 0 0;
+  background: linear-gradient(90deg,#f9e27b35,#222226 60%);
 }
 .profile-logo {
-  width: 70px;
-  height: auto;
-  margin-bottom: 10px;
+  display: block;
+  margin: 0 auto 12px auto;
+  width: 73px;
+  border-radius: 18px;
 }
-.profile-user {
-  font-size: 1.05em;
+.profile-user-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
 }
-.profile-label {
-  color: #f9e27b;
-  font-weight: 500;
+.profile-email-label {
+  color: #e1b254;
+  font-size: 1.07em;
+  font-weight: 600;
+  letter-spacing: .02em;
 }
 .profile-email {
   color: #fff;
-  font-weight: 600;
+  font-size: 1.07em;
+  font-weight: 700;
 }
-.profile-wallet-row {
-  display: flex;
-  justify-content: space-between;
-  margin: 28px 0 24px 0;
-  gap: 13px;
-}
-.profile-card {
-  background: #292929;
-  border-radius: 14px;
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-  padding: 16px 7px 11px 7px;
-  box-shadow: 0 2px 11px rgba(30,10,10,0.06);
-  cursor: pointer;
-  transition: background 0.19s;
-}
-.profile-card:active {
-  background: #343400;
-}
-.profile-card-title {
-  margin-top: 4px;
-  font-size: 0.93em;
-  color: #e1b254;
-  letter-spacing: 0.01em;
-}
-.profile-card-value {
-  font-size: 1.09em;
-  color: #ffd76c;
-  font-weight: 600;
-  margin-top: 5px;
-}
-.profile-card-icon {
-  width: 26px; height: 26px; border-radius: 7px;
-  background-color: #f9e27b;
-  display: inline-block; margin-bottom: 2px;
-}
-.wallet-icon { background: url('assets/wallet.png') no-repeat center/16px, #f9e27b; }
-.deposit-icon { background: url('assets/deposit.png') no-repeat center/14px, #e1b254; }
-.withdraw-icon { background: url('assets/withdraw.png') no-repeat center/14px, #e1b254; }
 
-.profile-history-row {
-  margin: 12px 0 18px 0;
-  display: flex; flex-direction: column; gap: 11px;
+.profile-main-block {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  padding: 0 21px;
 }
-.profile-history-btn {
-  width: 100%; padding: 12px 0; border: none; border-radius: 11px;
-  background: #232323; color: #ffd76c;
-  font-size: 1.08em; font-weight: 500; cursor: pointer;
-  letter-spacing: 0.03em;
-  transition: background 0.16s;
+.profile-block-row {
+  display: flex;
+  gap: 13px;
+  justify-content: space-between;
 }
-.profile-history-btn:active { background: #242200; color: #f9e27b; }
+.profile-block {
+  flex: 1;
+  background: #282823;
+  border-radius: 18px;
+  text-align: center;
+  padding: 19px 8px 13px 8px;
+  box-shadow: 0 2px 10px rgba(20,16,7,0.07);
+  cursor: pointer;
+  transition: background 0.17s;
+  min-width: 0;
+  border: 1.5px solid #282823;
+}
+.profile-block.active {
+  background: linear-gradient(109deg,#f9e27b42,#282823 74%);
+  border: 1.5px solid #f4c651;
+}
+.pb-icon { width: 28px; height: 28px; margin: 0 auto 6px auto; display:block;}
+.wallet-icon { background: url('assets/wallet.png') no-repeat center/78% #fde089;border-radius:5px;}
+.deposit-icon { background: url('assets/deposit.png') no-repeat center/80% #fbe288; border-radius:5px;}
+.withdraw-icon { background: url('assets/withdraw.png') no-repeat center/80% #fbe288; border-radius:5px;}
+.pb-label {
+  font-size: 1.08em;
+  color: #e1b254;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.pb-value {
+  font-size: 1.12em;
+  color: #f9e27b;
+  font-weight: 800;
+  letter-spacing:.02em;
+  margin-top: 4px;
+}
+
+.profile-bottom-outer {
+  margin:26px 0 0 0;
+  padding:0 21px;
+}
+.profile-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.profile-nav {
+  background: #232325;
+  border-radius: 13px;
+  border: none;
+  color: #f9e27b;
+  font-size: 1.07em;
+  text-align: left;
+  font-weight: 500;
+  padding: 12px 0 12px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  box-shadow: 0 1px 12px #e1b25418;
+  transition: background 0.14s;
+}
+.profile-nav:active {
+  background: #282800;
+  color: #fbeead;
+  box-shadow: 0 2px 18px #f9e27b28;
+}
+.nav-icon {
+  width: 25px;
+  height: 25px;
+  background-color: #e6be74;
+  border-radius: 7px;
+  display: inline-block;
+  margin-right: 3px;
+}
+.game-icon { background: url('assets/game.png') no-repeat center/17px, #e6be74;}
+.trans-icon { background: url('assets/transaction.png') no-repeat center/18px, #e6be74;}
+.dep-icon   { background: url('assets/deposit2.png') no-repeat center/16px, #e6be74;}
+.with-icon  { background: url('assets/withdraw2.png') no-repeat center/16px, #e6be74;}
 
 .profile-logout-btn {
-  width: 100%; margin-top: 22px; padding: 10px 0;
+  margin: 32px 0 0 0;
+  width: 100%; padding: 13px 0;
   border-radius: 11px; border: none;
-  background: linear-gradient(90deg,#f9e27b,#e4b159); color: #222;
-  font-size: 1.08em; font-weight: 600; cursor: pointer;
-  box-shadow: 0 1px 10px #e1b25430;
-  transition: background 0.13s;
+  background: linear-gradient(90deg,#f9e27b,#e4b159);
+  color: #222;
+  font-size: 1.09em; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 14px #e1b25433;
+  letter-spacing: .03em;
+  transition: background .11s;
 }
-.profile-logout-btn:active { background: #ffd76c; color: #e1b254; }
+.profile-logout-btn:active { background: #ffd76c; color: #976300; }
 
 @media (max-width: 480px) {
-  .profile-box { width: 97vw; padding: 18px 4vw 17px 4vw; }
+  .profile-outer { max-width: 99vw; width: 99vw; padding: 0;}
+  .profile-main-block, .profile-bottom-outer {padding: 0 2vw;}
 }
