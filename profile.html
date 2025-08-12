@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile - Wingo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="profile.css">
+</head>
+<body class="profile-bg">
+
+  <div class="profile-box">
+    <div class="profile-top">
+      <img src="assets/wingo-logo.png" alt="Wingo Logo" class="profile-logo">
+      <div class="profile-user">
+        <span class="profile-label">Email:</span>
+        <span id="profileEmail" class="profile-email"></span>
+      </div>
+    </div>
+
+    <div class="profile-wallet-row">
+      <div class="profile-card">
+        <div class="profile-card-icon wallet-icon"></div>
+        <div class="profile-card-title">Wallet</div>
+        <div class="profile-card-value" id="walletAmount">₹0.00</div>
+      </div>
+      <div class="profile-card" onclick="openDeposit()">
+        <div class="profile-card-icon deposit-icon"></div>
+        <div class="profile-card-title">Deposit</div>
+      </div>
+      <div class="profile-card" onclick="openWithdraw()">
+        <div class="profile-card-icon withdraw-icon"></div>
+        <div class="profile-card-title">Withdraw</div>
+      </div>
+    </div>
+
+    <div class="profile-history-row">
+      <button onclick="openGameHistory()" class="profile-history-btn">My Game History</button>
+      <button onclick="openTransactionHistory()" class="profile-history-btn">My Transaction History</button>
+      <button onclick="openDepositHistory()" class="profile-history-btn">Deposit History</button>
+      <button onclick="openWithdrawHistory()" class="profile-history-btn">Withdraw History</button>
+    </div>
+
+    <button class="profile-logout-btn" id="logoutBtn">Log out</button>
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
