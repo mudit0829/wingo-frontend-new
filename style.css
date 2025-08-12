@@ -125,6 +125,39 @@ body {
 .multiplier-btn.active { background: #2ecc71; color: #000; font-weight: bold; }
 .multiplier-btn.random { border: 1px solid #e74c3c; color: #e74c3c; background:#fff2ed; }
 
+/* == BIG/SMALL BETTING == */
+.big-small-section {
+  display: flex;
+  justify-content: space-around;
+  margin: 15px 0;
+}
+
+.bigsmall-btn {
+  flex: 1;
+  margin: 0 5px;
+  padding: 12px 0;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.bigsmall-btn.big {
+  background: linear-gradient(135deg, #e67e22, #d35400); /* orange */
+}
+
+.bigsmall-btn.small {
+  background: linear-gradient(135deg, #3498db, #2980b9); /* blue */
+}
+
+.bigsmall-btn:hover {
+  opacity: 0.85;
+}
+
+
 /* ====== HISTORY TABS ====== */
 .history-tabs {
   display: flex; justify-content: space-around; margin: 10px 0;
