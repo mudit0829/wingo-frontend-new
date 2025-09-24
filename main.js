@@ -129,7 +129,7 @@ async function handlePlaceBet() {
     });
     if (!res || !res.ok) throw new Error((await res.json()).message || "Bet failed");
     const data = await res.json();
-    alert(`✅ Bet placed! New wallet balance: ₹${data.newWalletBalance}`);
+    alert(`✅ Bet placed! New wallet balance: ${data.newWalletBalance}`);
     fetchWalletBalance();
     loadMyHistory();
   } catch (err) {
@@ -216,10 +216,10 @@ function renderMyHistoryPage() {
     else { statusClass = "pending"; statusText = "Pending"; }
 
     if (statusClass === "pending") {
-      amountText = "₹0.00";
+      amountText = "0.00";
     } else {
       const net = b.netAmount ?? 0;
-      amountText = `${net >= 0 ? "+" : "-"}₹${Math.abs(net).toFixed(2)}`;
+      amountText = `${net >= 0 ? "+" : "-"}${Math.abs(net).toFixed(2)}`;
     }
 
     const betValue = b.numberBet != null ? b.numberBet : (b.bigSmallBet || b.colorBet);
