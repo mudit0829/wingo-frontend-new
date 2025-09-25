@@ -1,43 +1,115 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #222;
-  color: #ffd76c;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #1a1a1a;
+  color: #fff3b0;
   display: flex;
   justify-content: center;
-  padding: 40px;
+  padding: 40px 15px;
+  min-height: 100vh;
+  margin: 0;
 }
+
 .container {
-  background: #333;
-  padding: 20px 30px;
-  border-radius: 10px;
-  width: 320px;
+  background: #2a2a2a;
+  padding: 30px 35px;
+  border-radius: 16px;
+  width: 350px;
+  box-shadow: 0 4px 20px rgb(252 227 138 / 0.6);
+  text-align: center;
 }
+
+h1 {
+  margin-bottom: 24px;
+  font-weight: 700;
+  font-size: 1.9em;
+  color: #fff1a8;
+  text-shadow: 0 0 6px #f9e05f;
+}
+
+.balance-info {
+  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 15px;
+}
+
 .balance-info p {
-  margin: 8px 0;
+  background: linear-gradient(145deg, #f6d365, #fda085);
+  box-shadow: 3px 3px 10px #b9802f, -3px -3px 10px #fff8c5;
+  border-radius: 14px;
+  padding: 15px 20px;
+  font-weight: 600;
+  font-size: 1.1em;
+  color: #673800;
+  margin: 0;
+}
+
+.balance-info p span {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.4em;
+  font-weight: 700;
+  color: #301f00;
+  text-shadow: 0 0 5px #e3bf2c;
+}
+
+.redeem-section {
+  margin-top: 10px;
+  text-align: left;
+}
+
+.redeem-section label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
   font-size: 1.1em;
 }
-.redeem-section {
-  margin-top: 20px;
-}
+
 #redeemAmount {
   width: 100%;
-  padding: 8px;
-  font-size: 1em;
-  margin: 5px 0 15px;
-  border-radius: 5px;
-  border: none;
+  padding: 12px 14px;
+  font-size: 1.15em;
+  border-radius: 9px;
+  border: 2px solid #f9e15f;
+  background: #3b3b1e;
+  color: #f7f1a6;
+  outline: none;
+  box-shadow: inset 1px 1px 4px #56561c;
+  transition: border-color 0.3s ease;
 }
+
+#redeemAmount:focus {
+  border-color: #fff77e;
+}
+
 #redeemBtn {
-  width: 100%;
-  background: #f9e27b;
-  border: none;
-  padding: 10px;
-  font-size: 1.1em;
-  cursor: pointer;
-  color: #222;
-  border-radius: 5px;
-}
-#message {
   margin-top: 20px;
-  font-weight: bold;
+  width: 100%;
+  background: linear-gradient(90deg, #f9e05f, #f1c232);
+  border: none;
+  padding: 14px 0;
+  font-size: 1.3em;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 14px;
+  color: #5a3c00;
+  text-shadow: 0 1px 2px #f9ea88;
+  box-shadow: 0 2px 15px #fbe87a85;
+  transition: background 0.3s ease;
+}
+
+#redeemBtn:disabled {
+  cursor: not-allowed;
+  background: #a99d4d;
+  color: #543f00;
+  box-shadow: none;
+}
+
+#message {
+  margin-top: 22px;
+  font-weight: 700;
+  font-size: 1.2em;
+  color: #fbe87a;
+  min-height: 1.5em;
+  text-shadow: 0 0 8px #fbe87a88;
 }
