@@ -1,0 +1,43 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #222;
+  color: #ffd76c;
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.container {
+  background: #333;
+  padding: 20px 30px;
+  border-radius: 10px;
+  width: 320px;
+}
+.balance-info p {
+  margin: 8px 0;
+  font-size: 1.1em;
+}
+.redeem-section {
+  margin-top: 20px;
+}
+#redeemAmount {
+  width: 100%;
+  padding: 8px;
+  font-size: 1em;
+  margin: 5px 0 15px;
+  border-radius: 5px;
+  border: none;
+}
+#redeemBtn {
+  width: 100%;
+  background: #f9e27b;
+  border: none;
+  padding: 10px;
+  font-size: 1.1em;
+  cursor: pointer;
+  color: #222;
+  border-radius: 5px;
+}
+#message {
+  margin-top: 20px;
+  font-weight: bold;
+}
