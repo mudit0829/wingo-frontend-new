@@ -1,7 +1,7 @@
-// MOCK user data (replace with your API calls)
-const walletBalance = 500;
-const betBalance = 200;
-const winningBalance = 2700;
+// *********** Replace below mock data with your real API fetched values *********** //
+let walletBalance = 500;   // Total points loaded
+let betBalance = 200;      // Points bet/lost - you can adjust with your losses
+let winningBalance = 2700; // Points won (sum of all wins)
 
 const walletBalanceElem = document.getElementById('walletBalance');
 const betBalanceElem = document.getElementById('betBalance');
@@ -12,16 +12,17 @@ const redeemBtn = document.getElementById('redeemBtn');
 const messageDiv = document.getElementById('message');
 
 function calculateRedeemable() {
-  // Redeemable points = (winningBalance) - (walletBalance)
+  // Redeemable = Winning - Wallet Load (Deposit)
   let redeemable = winningBalance - walletBalance;
-  return Math.max(0, redeemable);
+  if (redeemable < 0) redeemable = 0;
+  return redeemable;
 }
 
 function updateBalances() {
   walletBalanceElem.textContent = walletBalance;
   betBalanceElem.textContent = betBalance;
   winningBalanceElem.textContent = winningBalance;
-
+  
   const redeemable = calculateRedeemable();
   redeemableBalanceElem.textContent = redeemable;
 
@@ -31,29 +32,22 @@ function updateBalances() {
 }
 
 redeemBtn.addEventListener('click', () => {
-  const redeemAmount = Number(redeemInput.value);
+  const amount = Number(redeemInput.value);
   const redeemable = calculateRedeemable();
-
-  if (redeemAmount <= 0 || redeemAmount > redeemable) {
-    messageDiv.textContent = 'Invalid redeem amount.';
+  if (amount <= 0 || amount > redeemable) {
+    messageDiv.textContent = 'Please enter valid redeem amount.';
     return;
   }
-
-  // Call your backend redeem API here with redeemAmount
-  mockRedeemAPI(redeemAmount);
-});
-
-function mockRedeemAPI(amount) {
-  // Simulate API call
   messageDiv.textContent = 'Processing redeem request...';
+
+  // Simulate API call for redeem - replace with your backend call
   setTimeout(() => {
     messageDiv.textContent = `Successfully redeemed ${amount} points!`;
-    // In real app, update balances here after server response
-    // For demo: update winningBalance and balances display
+    // Update winning balance accordingly (sandbox)
     winningBalance -= amount;
     updateBalances();
   }, 1500);
-}
+});
 
 // Initialize display
 updateBalances();
