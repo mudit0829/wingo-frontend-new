@@ -9,7 +9,7 @@ const messageDiv = document.getElementById('message');
 // Fetch current user balances from backend
 async function fetchBalances() {
   try {
-    const res = await fetch('https://your-backend-url/api/users/balances', {
+    const res = await fetch('https://wingo-backend-nqk5.onrender.com/api/users/balances', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
@@ -59,7 +59,7 @@ redeemBtn.addEventListener('click', async () => {
   try {
     messageDiv.textContent = 'Processing redeem request...';
     
-    const res = await fetch('https://your-backend-url/api/users/redeem', {
+    const res = await fetch('https://wingo-backend-nqk5.onrender.com/api/users/redeem', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
