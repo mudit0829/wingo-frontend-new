@@ -1,8 +1,3 @@
-// *********** Replace below mock data with your real API fetched values *********** //
-let walletBalance = 500;   // Total points loaded
-let betBalance = 200;      // Points bet/lost - you can adjust with your losses
-let winningBalance = 2700; // Points won (sum of all wins)
-
 const walletBalanceElem = document.getElementById('walletBalance');
 const betBalanceElem = document.getElementById('betBalance');
 const winningBalanceElem = document.getElementById('winningBalance');
@@ -11,19 +6,40 @@ const redeemInput = document.getElementById('redeemAmount');
 const redeemBtn = document.getElementById('redeemBtn');
 const messageDiv = document.getElementById('message');
 
-function calculateRedeemable() {
-  // Redeemable = Winning - Wallet Load (Deposit)
+// Fetch current user balances from backend
+async function fetchBalances() {
+  try {
+    const res = await fetch('https://your-backend-url/api/users/balances', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (!res.ok) throw new Error('Failed to fetch balances');
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    messageDiv.textContent = `Error fetching balance: ${err.message}`;
+    return null;
+  }
+}
+
+function calculateRedeemable(winningBalance, walletBalance) {
   let redeemable = winningBalance - walletBalance;
   if (redeemable < 0) redeemable = 0;
   return redeemable;
 }
 
-function updateBalances() {
+async function updateBalances() {
+  const data = await fetchBalances();
+  if (!data) return;
+  
+  const { walletBalance, betBalance, winningBalance } = data;
+  
   walletBalanceElem.textContent = walletBalance;
   betBalanceElem.textContent = betBalance;
   winningBalanceElem.textContent = winningBalance;
   
-  const redeemable = calculateRedeemable();
+  const redeemable = calculateRedeemable(winningBalance, walletBalance);
   redeemableBalanceElem.textContent = redeemable;
 
   redeemInput.max = redeemable;
@@ -31,22 +47,39 @@ function updateBalances() {
   redeemBtn.disabled = redeemable <= 0;
 }
 
-redeemBtn.addEventListener('click', () => {
+redeemBtn.addEventListener('click', async () => {
   const amount = Number(redeemInput.value);
-  const redeemable = calculateRedeemable();
+  const redeemable = Number(redeemableBalanceElem.textContent);
+
   if (amount <= 0 || amount > redeemable) {
     messageDiv.textContent = 'Please enter valid redeem amount.';
     return;
   }
-  messageDiv.textContent = 'Processing redeem request...';
 
-  // Simulate API call for redeem - replace with your backend call
-  setTimeout(() => {
+  try {
+    messageDiv.textContent = 'Processing redeem request...';
+    
+    const res = await fetch('https://your-backend-url/api/users/redeem', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ amount }),
+    });
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.error || 'Redeem failed');
+    }
+    
     messageDiv.textContent = `Successfully redeemed ${amount} points!`;
-    // Update winning balance accordingly (sandbox)
-    winningBalance -= amount;
-    updateBalances();
-  }, 1500);
+    
+    // Refresh balances after redeem
+    await updateBalances();
+  } catch (err) {
+    messageDiv.textContent = `Redeem error: ${err.message}`;
+  }
 });
 
 // Initialize display
