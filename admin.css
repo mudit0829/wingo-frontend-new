@@ -1,0 +1,119 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #1e1e2f;
+  color: #f0e6c8;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+}
+
+.title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 2.5em;
+  margin-bottom: 30px;
+  color: #f3d84b;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
+  justify-content: center;
+  align-items: center;
+}
+
+.filters label {
+  font-weight: 600;
+}
+
+.filters input, .filters select, .filters button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9em;
+}
+
+.filters button {
+  background-color: #f3d84b;
+  cursor: pointer;
+  font-weight: 700;
+  color: #212121;
+  transition: background-color 0.3s ease;
+}
+
+.filters button:hover {
+  background-color: #d6b629;
+}
+
+.dashboard {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: linear-gradient(135deg, #c7a72e, #a17912);
+  box-shadow: 0 4px 12px rgb(200 167 46 / 0.5);
+  border-radius: 10px;
+  padding: 25px 30px;
+  width: 180px;
+  text-align: center;
+  color: #fff9d0;
+}
+
+.card h3 {
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.card p {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 0;
+}
+
+.table-section {
+  background: #282839;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.table-section h2 {
+  margin-top: 0;
+  color: #f3d84b;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #f0e6c8;
+}
+
+thead {
+  background-color: #3a3a5a;
+}
+
+th, td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #47477a;
+  text-align: left;
+}
+
+th {
+  font-weight: 700;
+}
+
+tbody tr:hover {
+  background-color: #464667;
+  cursor: pointer;
+}
