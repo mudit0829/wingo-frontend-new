@@ -3,29 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Redeem Points - WinGo</title>
+  <title>Redeem Points</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:600,700&display=swap">
   <link rel="stylesheet" href="redeem.css" />
 </head>
 <body>
-
-  <div class="container">
-    <h1>Redeem Your Points</h1>
-    <div class="balance-info">
-      <p><strong>Wallet Balance:</strong><br><span id="walletBalance">0</span> points</p>
-      <p><strong>Bet Balance:</strong><br><span id="betBalance">0</span> points</p>
-      <p><strong>Winning Balance:</strong><br><span id="winningBalance">0</span> points</p>
-      <p><strong>Redeemable Balance:</strong><br><span id="redeemableBalance">0</span> points</p>
+  <div class="redeem-container">
+    <h1 class="redeem-title">Redeem Points</h1>
+    <div class="balance-card">
+      <div class="balance-label">REDEEMABLE BALANCE</div>
+      <div class="balance-amount" id="redeemableBalance">0</div>
+      <div class="balance-unit">Points</div>
     </div>
 
-    <div class="redeem-section">
-      <label for="redeemAmount">Redeem Amount:</label>
-      <input type="number" id="redeemAmount" min="1" step="1" />
-      <button id="redeemBtn" disabled>Redeem</button>
-    </div>
+    <form class="redeem-form" id="redeemForm">
+      <label for="redeemAmount" class="form-label">Enter Points to Redeem:</label>
+      <input type="number" id="redeemAmount" min="1" class="form-input" required>
+      <button type="submit" class="redeem-btn">Redeem</button>
+    </form>
 
-    <div id="message"></div>
+    <div class="history-section">
+      <div class="history-title">Redeem History</div>
+      <ul class="history-list" id="historyList">
+        <!-- Example Entry: -->
+        <!-- <li><span class="hist-date">26-09-2025</span> <span class="hist-amount">-200</span></li> -->
+      </ul>
+    </div>
   </div>
-
   <script src="redeem.js"></script>
 </body>
 </html>
