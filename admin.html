@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Panel - WinGo</title>
+  <link rel="stylesheet" href="admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Admin Dashboard</h1>
+
+    <section class="filters">
+      <label for="dateStart">Start Date:</label>
+      <input type="date" id="dateStart" />
+      <label for="dateEnd">End Date:</label>
+      <input type="date" id="dateEnd" />
+      <button id="btnLoadReports">Load Reports</button>
+      <label for="roleFilter">User Role Filter:</label>
+      <select id="roleFilter">
+        <option value="">All</option>
+        <option value="user">User</option>
+        <option value="agent">Agent</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button id="btnLoadUsers">Load Users</button>
+    </section>
+
+    <section class="dashboard">
+      <div class="card">
+        <h3>Total Recharge</h3>
+        <p id="totalRecharge">0</p>
+      </div>
+      <div class="card">
+        <h3>Total Redeem</h3>
+        <p id="totalRedeem">0</p>
+      </div>
+      <div class="card">
+        <h3>Active Users</h3>
+        <p id="activeUsers">0</p>
+      </div>
+      <div class="card">
+        <h3>Inactive Users</h3>
+        <p id="inactiveUsers">0</p>
+      </div>
+      <div class="card">
+        <h3>Total Users</h3>
+        <p id="totalUsers">0</p>
+      </div>
+    </section>
+
+    <section class="table-section">
+      <h2>User List</h2>
+      <table id="userTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Wallet Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
