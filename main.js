@@ -40,8 +40,21 @@ function showTab(id, btn) {
   document.getElementById(id).classList.remove("hidden");
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-  document.getElementById("gameHistoryPagination").style.display = id === "gameHistory" ? "" : "none";
-  document.getElementById("myHistoryPagination").style.display = id === "myHistory" ? "" : "none";
+
+  if (id === "gameHistory") {
+    document.getElementById("gameHistoryPagination").style.display = "";
+    document.getElementById("myHistoryPagination").style.display = "none";
+    gamePage = 0; 
+    renderGameHistoryPage();
+  } else if (id === "myHistory") {
+    document.getElementById("myHistoryPagination").style.display = "";
+    document.getElementById("gameHistoryPagination").style.display = "none";
+    myPage = 0;
+    renderMyHistoryPage();
+  } else {
+    document.getElementById("myHistoryPagination").style.display = "none";
+    document.getElementById("gameHistoryPagination").style.display = "none";
+  }
 }
 window.showTab = showTab;
 
@@ -182,14 +195,27 @@ function renderPagination(containerId, page, pageCount, setPageFnName) {
   const pag = document.getElementById(containerId);
   if (!pag) return;
   if (pageCount <= 1) {
-    pag.innerHTML = ""; return;
+    pag.innerHTML = "";
+    return;
   }
-  let html = `
-    <button ${page <= 0 ? "disabled" : ""} onclick="${setPageFnName}(${page-1})">&#60;</button>
-    <span style="margin:0 10px;">${page+1}/${pageCount}</span>
-    <button ${page >= pageCount-1 ? "disabled" : ""} onclick="${setPageFnName}(${page+1})">&#62;</button>
-  `;
-  pag.innerHTML = html;
+  pag.innerHTML = "";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "‹";
+  prevBtn.disabled = page <= 0;
+  prevBtn.onclick = () => window[setPageFnName](page - 1);
+  pag.appendChild(prevBtn);
+
+  const pageInfo = document.createElement("span");
+  pageInfo.style.margin = "0 10px";
+  pageInfo.textContent = `${page + 1} / ${pageCount}`;
+  pag.appendChild(pageInfo);
+
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "›";
+  nextBtn.disabled = page >= pageCount - 1;
+  nextBtn.onclick = () => window[setPageFnName](page + 1);
+  pag.appendChild(nextBtn);
 }
 
 // == Game history pagination and render ==
