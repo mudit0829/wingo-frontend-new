@@ -4,32 +4,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   if (!token) return window.location.href = 'login.html';
 
-  // Try getting user email from backend (otherwise fallback to local storage)
-  let email = localStorage.getItem("userEmail");
-  if (!email) {
-    try {
-      const res = await fetch(`${apiUrl}/api/users/me`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        email = data.email;
-        localStorage.setItem("userEmail", email);
-      }
-    } catch {}
-  }
-  document.getElementById("profileEmail").textContent = email || "(No email)";
-
-  // Wallet value
+  // Fetch user profile (email, optionally name)
   try {
-    const r = await fetch(`${apiUrl}/api/users/wallet`, {
+    const res = await fetch(`${apiUrl}/api/users/profile`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    if (r.ok) {
-      const d = await r.json();
-      document.getElementById("walletAmount").textContent = "₹" + parseFloat(d.wallet || 0).toFixed(2);
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById("profileEmail").textContent = data.email || "(No email)";
+      // If you add name field in HTML, set it here as well
+    } else {
+      document.getElementById("profileEmail").textContent = "(Error fetching profile)";
     }
-  } catch {}
+  } catch {
+    document.getElementById("profileEmail").textContent = "(Error fetching profile)";
+  }
+
+  // Fetch wallet balance
+  try {
+    const res = await fetch(`${apiUrl}/api/users/wallet`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById("walletAmount").textContent = "₹" + (Number(data.wallet) || 0).toFixed(2);
+    } else {
+      document.getElementById("walletAmount").textContent = "₹0.00";
+    }
+  } catch {
+    document.getElementById("walletAmount").textContent = "₹0.00";
+  }
 
   // Logout
   document.getElementById("logoutBtn").onclick = () => {
