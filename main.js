@@ -5,6 +5,7 @@ let selectedDenom = 1, selectedMultiplier = 1, selectedGameType = "WIN30";
 let gameHistoryArr = [], myHistoryArr = [];
 let gamePage = 0, myPage = 0;
 const itemsPerPage = 20;
+const maxPages = 50;
 
 const gameTypeMap = {
   "WinGo 30sec": "WIN30",
@@ -113,6 +114,7 @@ function updatePopupTotal() {
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
+  if (qty < 1) { alert("Quantity must be at least 1."); return; }
   const amount = selectedDenom * qty * selectedMultiplier;
   const payload = {
     gameType: selectedGameType,
@@ -127,7 +129,10 @@ async function handlePlaceBet() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    if (!res || !res.ok) throw new Error((await res.json()).message || "Bet failed");
+    if (!res || !res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Bet failed");
+    }
     const data = await res.json();
     alert(`✅ Bet placed! New wallet balance: ${data.newWalletBalance}`);
     fetchWalletBalance();
@@ -143,10 +148,12 @@ async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
     const r = await authFetch(`${apiUrl}/api/users/wallet`);
-    if (!r.ok) throw 0;
+    if (!r.ok) throw new Error('Failed to fetch wallet');
     const d = await r.json();
     document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 // == Current round ==
@@ -170,7 +177,84 @@ setInterval(() => {
     `${String(Math.floor(rem / 60)).padStart(2, "0")}:${String(rem % 60).padStart(2, "0")}`;
 }, 1000);
 
-// == Game history ==
+// == Pagination helpers ==
+function renderPagination(containerId, page, pageCount, setPageFnName) {
+  const pag = document.getElementById(containerId);
+  if (!pag) return;
+  if (pageCount <= 1) {
+    pag.innerHTML = ""; return;
+  }
+  let html = `
+    <button ${page <= 0 ? "disabled" : ""} onclick="${setPageFnName}(${page-1})">&#60;</button>
+    <span style="margin:0 10px;">${page+1}/${pageCount}</span>
+    <button ${page >= pageCount-1 ? "disabled" : ""} onclick="${setPageFnName}(${page+1})">&#62;</button>
+  `;
+  pag.innerHTML = html;
+}
+
+// == Game history pagination and render ==
+function renderGameHistoryPage() {
+  const cont = document.getElementById("gameHistory");
+  const arr = gameHistoryArr.slice(0, itemsPerPage * maxPages);
+  const pageCount = Math.ceil(arr.length / itemsPerPage);
+  const page = Math.min(gamePage, pageCount - 1);
+  const start = page * itemsPerPage;
+  const end = Math.min(start + itemsPerPage, arr.length);
+  cont.innerHTML = `<table class="history-table"><tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr></table>`;
+  for (let i = start; i < end; ++i) {
+    const r = arr[i];
+    const num = r.resultNumber ?? "-";
+    const col = getWinGoColor(num);
+    const bs = num === "-" ? "-" : (num >= 5 ? "Big" : "Small");
+    cont.querySelector("table").innerHTML += `<tr>
+      <td>${r.roundId}</td>
+      <td><span class="history-number ${col}">${num}</span></td>
+      <td>${bs}</td>
+      <td><span class="dot ${col}"></span></td>
+    </tr>`;
+  }
+  renderPagination("gameHistoryPagination", page, pageCount, "setGamePage");
+}
+window.setGamePage = function(p) {
+  gamePage = Math.max(0, Math.min(p, maxPages - 1));
+  renderGameHistoryPage();
+}
+
+// == My history pagination and render ==
+function renderMyHistoryPage() {
+  const cont = document.getElementById("myHistory");
+  const arr = myHistoryArr.slice(0, itemsPerPage * maxPages);
+  const pageCount = Math.ceil(arr.length / itemsPerPage);
+  const page = Math.min(myPage, pageCount - 1);
+  const start = page * itemsPerPage;
+  const end = Math.min(start + itemsPerPage, arr.length);
+  cont.innerHTML = "";
+  for (let i = start; i < end; ++i) {
+    const b = arr[i];
+    let statusClass, statusText, amountText;
+    if (b.win === true) { statusClass = "succeed"; statusText = "Succeed"; }
+    else if (b.win === false) { statusClass = "failed"; statusText = "Failed"; }
+    else { statusClass = "pending"; statusText = "Pending"; }
+    amountText = statusClass === "pending" ? "0.00" : `${(b.netAmount >= 0 ? "+" : "-") + Math.abs(b.netAmount || 0).toFixed(2)}`;
+    const betValue = b.numberBet != null ? b.numberBet : (b.bigSmallBet || b.colorBet);
+    const betColorClass = b.numberBet != null ? getWinGoColor(betValue) :
+      b.bigSmallBet ? (b.bigSmallBet === "Big" ? "red" : "green") :
+      (b.colorBet ? b.colorBet.toLowerCase() : "");
+    cont.innerHTML += `
+      <div class="my-history-item">
+        <div class="my-history-left"><div class="color-box ${betColorClass}">${b.numberBet != null || b.bigSmallBet != null ? betValue : ""}</div></div>
+        <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN", { hour12: false }) : ""}</div></div>
+        <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${amountText}</div></div>
+      </div>`;
+  }
+  renderPagination("myHistoryPagination", page, pageCount, "setMyPage");
+}
+window.setMyPage = function(p) {
+  myPage = Math.max(0, Math.min(p, maxPages - 1));
+  renderMyHistoryPage();
+}
+
+// == Load game history ==
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -178,62 +262,28 @@ async function loadGameHistory() {
     let rounds = await r.json();
     const seen = new Set();
     rounds = rounds.filter(rr => !seen.has(rr.roundId) && seen.add(rr.roundId));
-    gameHistoryArr = rounds;
+    gameHistoryArr = rounds.slice(0, itemsPerPage * maxPages);
+    gamePage = 0;
     renderGameHistoryPage();
-  } catch {}
-}
-function renderGameHistoryPage() {
-  const cont = document.getElementById("gameHistory");
-  cont.innerHTML = `<table class="history-table"><tr><th>Period</th><th>Number</th><th>Big Small</th><th>Color</th></tr></table>`;
-  gameHistoryArr.forEach(r => {
-    const num = r.resultNumber ?? "-", col = getWinGoColor(num), bs = num === "-" ? "-" : (num >= 5 ? "Big" : "Small");
-    cont.querySelector("table").innerHTML += `<tr>
-      <td>${r.roundId}</td>
-      <td><span class="history-number ${col}">${num}</span></td>
-      <td>${bs}</td>
-      <td><span class="dot ${col}"></span></td></tr>`;
-  });
+  } catch (err) {
+    console.error("Error loading game history:", err);
+  }
 }
 
-// == My history ==
+// == Load my history ==
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
     const betsR = await authFetch(`${apiUrl}/api/bets/user?gameType=${selectedGameType}`);
     if (!betsR.ok) return;
-    myHistoryArr = await betsR.json();
+    const bets = await betsR.json();
+    myHistoryArr = bets.slice(0, itemsPerPage * maxPages);
+    myPage = 0;
     renderMyHistoryPage();
     fetchWalletBalance();
-  } catch {}
-}
-function renderMyHistoryPage() {
-  const cont = document.getElementById("myHistory");
-  cont.innerHTML = '';
-  myHistoryArr.forEach(b => {
-    let statusClass, statusText, amountText;
-    if (b.win === true) { statusClass = "succeed"; statusText = "Succeed"; }
-    else if (b.win === false) { statusClass = "failed"; statusText = "Failed"; }
-    else { statusClass = "pending"; statusText = "Pending"; }
-
-    if (statusClass === "pending") {
-      amountText = "0.00";
-    } else {
-      const net = b.netAmount ?? 0;
-      amountText = `${net >= 0 ? "+" : "-"}${Math.abs(net).toFixed(2)}`;
-    }
-
-    const betValue = b.numberBet != null ? b.numberBet : (b.bigSmallBet || b.colorBet);
-    const betColorClass = b.numberBet != null ? getWinGoColor(betValue) :
-      b.bigSmallBet ? (b.bigSmallBet === 'Big' ? 'red' : 'green') :
-      (b.colorBet ? b.colorBet.toLowerCase() : '');
-
-    cont.innerHTML += `
-      <div class="my-history-item">
-        <div class="my-history-left"><div class="color-box ${betColorClass}">${b.numberBet != null || b.bigSmallBet != null ? betValue : ''}</div></div>
-        <div class="my-history-center"><div>${b.roundId}</div><div>${b.timestamp ? new Date(b.timestamp).toLocaleString("en-IN",{hour12:false}) : ""}</div></div>
-        <div class="my-history-right"><div class="status ${statusClass}">${statusText}</div><div class="amount ${statusClass}">${amountText}</div></div>
-      </div>`;
-  });
+  } catch (err) {
+    console.error("Error loading my history:", err);
+  }
 }
 
 // == Init ==
@@ -266,3 +316,4 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
+});
