@@ -30,10 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       alert(`Redeem successful! You redeemed ${data.redeemed} points. New wallet balance: ${data.wallet}`);
       
-      // Refresh displayed data
       fetchRedeemData(token);
 
-      // Clear input
       document.getElementById("redeemAmount").value = '';
     } catch (err) {
       alert("Error: " + err.message);
@@ -43,7 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function fetchRedeemData(token) {
   try {
-    // Fetch wallet and redeem history (assuming redeemHistory in the wallet API or separate API)
     const res = await fetch(`${apiUrl}/api/users/wallet`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -54,10 +51,8 @@ async function fetchRedeemData(token) {
     const balance = walletData.wallet || 0;
     document.getElementById("redeemableBalance").textContent = balance.toFixed(2);
 
-    // Renew redeem history display
+    // Assuming redeemHistory returned in walletData
     let redeemHistory = walletData.redeemHistory || [];
-
-    // If not in walletData, you may fetch from separate endpoint and adjust here
 
     const list = document.getElementById("historyList");
     list.innerHTML = "";
