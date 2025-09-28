@@ -1,5 +1,6 @@
+/* Body and Container */
 body {
-  background: linear-gradient(135deg, #18120c, #2c240e 60%, #402e08 100%);
+  background: linear-gradient(135deg, #1a1a1a, #333);
   font-family: 'Montserrat', Arial, sans-serif;
   color: #f7d173;
   margin: 0;
@@ -7,153 +8,169 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
 .redeem-container {
-  background: rgba(36, 30, 18, 0.97);
+  background: #2b2b1f;
   border-radius: 20px;
-  box-shadow: 0 6px 30px #c3a14c33, 0 1.5px 0 #765b2b77;
-  padding: 38px 30px 36px 30px;
-  width: 350px;
+  box-shadow: 0 6px 25px rgba(249, 209, 91, 0.4);
+  padding: 40px 30px 36px 30px;
+  width: 400px;
   max-width: 95vw;
   text-align: center;
+  border: 1px solid #e1b63399;
 }
 
+/* Title */
 .redeem-title {
-  font-size: 2.1em;
+  font-size: 2.5em;
   font-weight: 700;
-  letter-spacing: 1.2px;
-  color: #ffd980;
-  margin-bottom: 22px;
-  text-shadow: 0 2px 10px #b5943aff;
+  color: #ffd94e;
+  margin-bottom: 25px;
+  text-shadow: 0 3px 15px #d6b94baa;
+  letter-spacing: 2px;
+  user-select: none;
 }
 
+/* Balance Card */
 .balance-card {
-  background: linear-gradient(127deg, #FFF3C7 75%, #e6b613 100%);
-  box-shadow: 0 2px 12px #cab46f, 0 1.5px 0 #eeead355;
-  border-radius: 18px;
-  padding: 23px 18px 15px 18px;
-  margin-bottom: 28px;
+  background: linear-gradient(135deg, #fff7cd 75%, #e7b800 100%);
+  border-radius: 15px;
+  padding: 24px 18px 16px 18px;
+  margin-bottom: 35px;
+  box-shadow: inset 0 2px 8px #ceb351aa;
+  user-select: none;
 }
 
 .balance-label {
   text-transform: uppercase;
-  color: #c49a3f;
-  font-size: 1.1em;
+  color: #aa8c2f;
+  font-size: 1.3em;
   font-weight: 600;
-  margin-bottom: 6px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
 }
 
 .balance-amount {
-  color: #b9880f;
-  font-size: 2.7em;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-shadow: 0 7px 12px #b9ad8e40;
-  margin-bottom: 2px;
+  color: #ad8909;
+  font-size: 3.2em;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px #e7bc22bb;
+  margin-bottom: 5px;
 }
 
 .balance-unit {
-  font-size: 1em;
-  color: #917011;
-  letter-spacing: 0.07em;
-  font-weight: 600;
-  margin-top: 0;
+  font-size: 1.1em;
+  color: #957e1c;
+  font-weight: 700;
+  letter-spacing: 0.09em;
 }
 
+/* Redeem Form */
 .redeem-form {
-  margin-bottom: 35px;
+  margin-bottom: 40px;
 }
 
 .form-label {
   display: block;
-  color: #fff1be;
-  font-weight: 600;
-  font-size: 1em;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
+  color: #ffd97c;
+  font-weight: 700;
+  font-size: 1.1em;
+  margin-bottom: 12px;
+  letter-spacing: 1.3px;
+  user-select: none;
 }
 
 .form-input {
   width: 100%;
-  background: #fffbe5;
+  background: #fff9d1;
   border: none;
-  border-radius: 8px;
-  padding: 12px;
-  font-size: 1.14em;
-  color: #af8e1b;
+  border-radius: 10px;
+  padding: 15px 12px;
+  font-size: 1.3em;
+  color: #8d720c;
   text-align: center;
-  font-family: inherit;
-  margin-bottom: 15px;
-  box-shadow: 0 1.5px 0 #765b2b22;
+  font-family: 'Montserrat', Arial, sans-serif;
+  box-shadow: inset 0 0 5px #805e04aa;
   outline: none;
-  transition: border 0.3s;
+  transition: border-color 0.3s ease-in-out;
 }
 
 .form-input:focus {
-  border: 2px solid #eec948;
+  border: 2px solid #ffd94e;
 }
 
+/* Redeem Button */
 .redeem-btn {
   width: 100%;
-  background: linear-gradient(90deg, #ffd57c 0%, #e3b830 100%);
+  background: linear-gradient(90deg, #fecf49 0%, #daaa02 100%);
   border: none;
-  border-radius: 9px;
-  padding: 13px 0;
-  color: #70530b;
-  font-size: 1.23em;
-  font-weight: 700;
-  box-shadow: 0 6px 25px #fcd86544;
+  border-radius: 12px;
+  padding: 16px 0;
+  color: #5e4a01;
+  font-size: 1.4em;
+  font-weight: 800;
+  box-shadow: 0 5px 22px rgba(242, 195, 3, 0.59);
   cursor: pointer;
-  transition: background 0.3s;
+  user-select: none;
+  transition: background 0.25s ease;
 }
 
-.redeem-btn:active, .redeem-btn:focus {
-  background: linear-gradient(90deg, #ffe2a3, #dbb017 100%);
+.redeem-btn:hover,
+.redeem-btn:focus {
+  background: linear-gradient(90deg, #ffdf6f 0%, #e4b001 100%);
 }
 
+/* History Section */
 .history-section {
-  background: #262112dd;
-  border-radius: 13px;
-  box-shadow: 0 2px 8px #dec5841a;
-  padding: 20px 10px 14px;
-  text-align: left;
+  background: #3e3a20cc;
+  border-radius: 15px;
+  box-shadow: 0 5px 18px rgba(214, 189, 95, 0.24);
+  padding: 24px 18px;
+  color: #f1d57b;
+  font-family: 'Montserrat', Arial, sans-serif;
+  user-select: none;
 }
 
 .history-title {
-  font-size: 1.11em;
-  font-weight: 700;
-  color: #ebbd58;
-  margin-bottom: 13px;
-  letter-spacing: 0.09em;
+  font-size: 1.3em;
+  font-weight: 800;
+  color: #f8d54f;
+  margin-bottom: 20px;
+  letter-spacing: 0.12em;
   text-align: center;
 }
 
+/* History List */
 .history-list {
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 110px;
+  max-height: 160px;
   overflow-y: auto;
+  font-size: 1.2em;
+  color: #dcc448;
 }
 
 .history-list li {
-  padding: 8px 0;
-  border-bottom: 1.5px solid #bda64f22;
+  padding: 10px 0;
+  border-bottom: 1.5px solid #bda64f33;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1em;
 }
 
 .hist-date {
-  color: #fff3b0cc;
-  font-size: 0.96em;
+  color: #fff7b3cc;
+  font-size: 1em;
+  letter-spacing: 0.03em;
 }
 
 .hist-amount {
-  color: #a57c07;
-  font-weight: 700;
-  font-size: 1.03em;
+  color: #c9a20c;
+  font-weight: 900;
+  font-size: 1.2em;
+  letter-spacing: 0.05em;
 }
