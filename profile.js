@@ -2,7 +2,7 @@ const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
-  if (!token) return window.location.href = 'login.html';
+  if (!token) return window.location.href = 'index.html';
 
   // Fetch user profile (email, optionally name)
   try {
