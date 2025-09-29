@@ -391,6 +391,7 @@ function renderPagination(containerId, page, pageCount, setPageFnName) {
   pag.appendChild(nextBtn);
 }
 
+
 // == Init ==
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
@@ -418,6 +419,44 @@ document.addEventListener("DOMContentLoaded", () => {
       loadMyHistory();
     });
   });
+function showResultPopup({win, result, bonus, period, autoCloseSec=3}) {
+  const wrapper = document.getElementById('resultPopup');
+  const img = document.getElementById('resultBgImg');
+  const congrats = document.getElementById('congratsText');
+  const lose = document.getElementById('loseText');
+  const detail = document.getElementById('resultDetail');
+  const bonusPart = document.getElementById('bonusPart');
+  const autoNote = document.getElementById('autoCloseNote');
+
+  wrapper.style.display = 'block';
+  congrats.style.display = win ? '' : 'none';
+  lose.style.display = win ? 'none' : '';
+  img.src = win ? 'winningBG.jpg' : 'losingbg.jpg';
+
+  // Build the result details
+  let detailHtml = '';
+  if(win && result){
+    if(result.color) detailHtml += `<span style="background:#27ae60;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.color}</span>`;
+    if(result.number !== undefined) detailHtml += `<span style="background:#fff;color:#e67e22;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.number}</span>`;
+    if(result.size) detailHtml += `<span style="background:#006fd2;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.size}</span>`;
+  }
+  detail.innerHTML = win ? `<div style="font-size:1.15em;">Lottery results ${detailHtml}</div>` : '';
+  // Period and bonus
+  if(win && bonus) {
+    bonusPart.style.display = '';
+    bonusPart.innerHTML = `<div>Bonus<br><span style="font-size:1.44em;font-weight:900;color:#E74C3C;">₹${bonus.toFixed(2)}</span><br><span style="font-size:14px;color:#888;">Period: ${period}</span></div>`;
+  } else {
+    bonusPart.style.display = 'none';
+  }
+  autoNote.innerHTML = `<span>⏳ ${autoCloseSec} seconds auto close</span>`;
+  
+  // Auto-close logic
+  setTimeout(hideResultPopup, autoCloseSec*1000);
+}
+function hideResultPopup() {
+  document.getElementById('resultPopup').style.display = 'none';
+}
+
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
