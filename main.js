@@ -113,6 +113,26 @@ function startTimer() {
   }, 1000);
 }
 
+// == Current round ==
+async function fetchCurrentRound() {
+  try {
+    const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
+    if (!r.ok) return;
+    const round = await r.json();
+    if (!round?.roundId || !round?.endTime) return;
+    currentRoundId = round.roundId;
+    roundEndTime = new Date(round.endTime).getTime();
+    document.getElementById("roundId").textContent = round.roundId;
+
+    if (!timerInterval) {
+      betClosed = false;
+      startTimer();
+    }
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
 // == Tab switching ==
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
@@ -287,6 +307,7 @@ function renderMyHistoryPage() {
   cont.innerHTML = "";
   for (let i = start; i < end; ++i) {
     const b = arr[i];
+    if (!b) continue;
     let statusClass, statusText, amountText;
     if (b.win === true) { statusClass = "succeed"; statusText = "Succeed"; }
     else if (b.win === false) { statusClass = "failed"; statusText = "Failed"; }
