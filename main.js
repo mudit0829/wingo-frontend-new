@@ -76,43 +76,37 @@ function hideLoadingAnimation() {
 }
 
 // == Timer logic ==
-let timer = 30; // starting timer for 30 seconds
 let betClosed = false;
 let timerInterval = null;
 
 function startTimer() {
-  if(timerInterval) clearInterval(timerInterval);
-  timer = 30;
-  betClosed = false;
-
-  enableAllBetButtons();
-  hideLoadingAnimation();
+  if (timerInterval) clearInterval(timerInterval);
 
   timerInterval = setInterval(() => {
+    if (!roundEndTime) return;
+
+    let rem = Math.floor((roundEndTime - Date.now()) / 1000);
+    if (rem < 0) rem = 0;
+
     const timeDigits = document.getElementById("timeDigits");
-    const minutes = Math.floor(timer / 60).toString().padStart(2, "0");
-    const seconds = (timer % 60).toString().padStart(2, "0");
+    const minutes = Math.floor(rem / 60).toString().padStart(2, "0");
+    const seconds = (rem % 60).toString().padStart(2, "0");
     timeDigits.textContent = `${minutes}:${seconds}`;
 
-    if (timer === 5) {
+    if (rem <= 5 && !betClosed) {
       betClosed = true;
       disableAllBetButtons();
       showLoadingAnimation();
     }
-    if (timer === 0) {
+
+    if (rem === 0) {
       hideLoadingAnimation();
       enableAllBetButtons();
-      timer = 30; // reset timer
 
-      // Fetch new round info here to sync and start fresh
+      // Fetch next round info to sync new endTime
       fetchCurrentRound();
 
-      // Reset game histories or other UI if needed here
-      loadGameHistory();
-      loadMyHistory();
-
-    } else {
-      timer--;
+      betClosed = false;
     }
   }, 1000);
 }
@@ -258,13 +252,18 @@ async function fetchCurrentRound() {
     const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
     if (!r.ok) return;
     const round = await r.json();
-    if (!round?.roundId) return;
+    if (!round?.roundId || !round?.endTime) return;
     currentRoundId = round.roundId;
     roundEndTime = new Date(round.endTime).getTime();
     document.getElementById("roundId").textContent = round.roundId;
 
-    startTimer();
-  } catch (err) { console.error(err.message); }
+    if (!timerInterval) {
+      betClosed = false;
+      startTimer();
+    }
+  } catch (err) {
+    console.error(err.message);
+  }
 }
 
 // == Game history pagination and render ==
