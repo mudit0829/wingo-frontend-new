@@ -168,13 +168,30 @@
     window.location.href = "http://wingogames.in/redeem.html";
   };
 </script>
-  
-  <!-- Bet closed loading overlay -->
-<div id="betClosedOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.8); z-index: 9999; color: #FFC542; font-size: 140px; font-weight: bold;
-    display: flex; flex-direction: column; justify-content: center; align-items: center; user-select:none;">
-  <div>loading...</div>
-  <div id="betClosedCountdown" style="font-size: 6em; margin-top: 20px;">5</div>
+<!-- Overlay only over the main play area, not full screen -->
+<div id="betClosedOverlay" style="
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 225px; /* adjust this to match your timer-section position */
+  transform: translateX(-50%);
+  width: 280px; /* match your timer section width */
+  height: 180px;
+  z-index: 99;
+  background: rgba(18, 17, 22, 0.0); /* transparent or faint dark only if you want */
+  pointer-events:none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;"
+>
+  <div id="betClosedCountdown"
+    style="font-size: 110px; font-weight: 900; color: #FFC542; font-family: Arial,Impact,sans-serif; line-height:1;">
+    5
+  </div>
+  <div style="font-size:22px;font-weight:bold;color:#fff;margin-top:-16px;letter-spacing:2px;text-shadow:0 0 6px #000;">
+    loading...
+  </div>
 </div>
 
 
