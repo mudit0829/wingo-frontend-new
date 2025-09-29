@@ -1,329 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Admin Panel - WinGo</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" />
-<style>
-  /* Include admin.css styles here or link a separate CSS file */
-  body {
-    font-family: 'Roboto', Arial, sans-serif;
-    background-color: #121212;
-    color: #ddd;
-    margin: 0; padding: 20px;
-  }
-  .container {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-  h1.title {
-    text-align: center;
-    font-weight: 700;
-    font-size: 2.75rem;
-    color: #efb810;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-  }
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem 1.5rem;
-    margin-bottom: 2rem;
-  }
-  .filters label {
-    font-weight: 600;
-    color: #bbb;
-    align-self: center;
-  }
-  .filters input,
-  .filters select {
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    border: none;
-    font-size: 1rem;
-    min-width: 150px;
-    outline: none;
-    transition: box-shadow 0.3s ease;
-  }
-  .filters input:focus,
-  .filters select:focus {
-    box-shadow: 0 0 6px #efb810aa;
-  }
-  .filters button {
-    padding: 0.5rem 1.25rem;
-    background: #efb810;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 1rem;
-    color: #111;
-    cursor: pointer;
-    box-shadow: 0 3px 10px #efb810bb;
-    transition: background 0.3s ease;
-  }
-  .filters button:hover {
-    background: #c28f07;
-  }
-  .dashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-  }
-  .card {
-    background: #1e1e2e;
-    border-radius: 14px;
-    padding: 1.75rem 1.5rem;
-    box-shadow: 0 0 10px #efb81077 inset;
-    transition: box-shadow 0.3s ease;
-  }
-  .card:hover {
-    box-shadow: 0 0 18px #efb810dd inset;
-  }
-  .card h3 {
-    font-weight: 600;
-    font-size: 1.125rem;
-    color: #ffd44c;
-    margin-bottom: 0.6rem;
-    letter-spacing: 0.05em;
-  }
-  .card p {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0;
-    text-align: center;
-  }
-  .table-section {
-    background: #1e1e2e;
-    border-radius: 14px;
-    padding: 1.25rem;
-  }
-  .table-section h2 {
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #efb810;
-    letter-spacing: 1px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    color: #ddd;
-  }
-  thead {
-    background-color: #292934;
-  }
-  th, td {
-    text-align: left;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #444458;
-    font-size: 1rem;
-  }
-  th {
-    font-weight: 700;
-  }
-  tbody tr:hover {
-    background-color: #3d3d52;
-  }
-  .loading,
-  .error {
-    text-align: center;
-    color: #f44336;
-    font-weight: 600;
-    margin-top: 1rem;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Game Platform</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:600,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">Admin Dashboard</h1>
-
-    <section class="filters">
-      <label for="dateStart">Start Date:</label>
-      <input type="date" id="dateStart" />
-      <label for="dateEnd">End Date:</label>
-      <input type="date" id="dateEnd" />
-      <button id="btnLoadReports" title="Load filtered reports">Load Reports</button>
-      <label for="roleFilter">User Role Filter:</label>
-      <select id="roleFilter">
-        <option value="">All</option>
-        <option value="user">User</option>
-        <option value="agent">Agent</option>
-        <option value="admin">Admin</option>
-      </select>
-      <button id="btnLoadUsers" title="Load filtered users">Load Users</button>
+<div id="admin-app">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Wingo Admin</div>
+    <nav>
+      <ul>
+        <li class="active" data-section="users">Users</li>
+        <li data-section="wallet">Wallet</li>
+        <li data-section="agents">Agents</li>
+        <li data-section="rounds">Game Rounds</li>
+        <li data-section="bets">Bets</li>
+        <li data-section="reports">Reports</li>
+        <li data-section="notifications">Notifications</li>
+        <li data-section="config">Config</li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="admin-content">
+    <!-- Users Section -->
+    <section id="users" class="admin-section">
+      <div class="admin-section-header">
+        <h2>User Management</h2>
+        <button id="btnNewUser">Create User</button>
+      </div>
+      <div id="userTableContainer"></div>
     </section>
-
-    <section class="dashboard" aria-live="polite" aria-atomic="true" aria-relevant="additions removals">
-      <div class="card" title="Total Recharge Amount">
-        <h3>Total Recharge</h3>
-        <p id="totalRecharge" aria-label="Total recharge amount">0</p>
-      </div>
-      <div class="card" title="Total Redeemed Amount">
-        <h3>Total Redeem</h3>
-        <p id="totalRedeem" aria-label="Total redeemed amount">0</p>
-      </div>
-      <div class="card" title="Active Users - wallet balance greater than 0">
-        <h3>Active Users</h3>
-        <p id="activeUsers" aria-label="Active users count">0</p>
-      </div>
-      <div class="card" title="Inactive Users - wallet balance zero">
-        <h3>Inactive Users</h3>
-        <p id="inactiveUsers" aria-label="Inactive users count">0</p>
-      </div>
-      <div class="card" title="Total Registered Users">
-        <h3>Total Users</h3>
-        <p id="totalUsers" aria-label="Total users count">0</p>
-      </div>
+    <!-- Wallet Section -->
+    <section id="wallet" class="admin-section hidden">
+      <div class="admin-section-header"><h2>Wallet Management</h2></div>
+      <div id="walletFormContainer"></div>
     </section>
-
-    <section class="table-section" aria-live="polite" aria-atomic="true" aria-relevant="additions removals">
-      <h2>User List</h2>
-      <table id="userTable" aria-describedby="userListDescription" role="grid">
-        <thead>
-          <tr role="row">
-            <th role="columnheader">Name</th>
-            <th role="columnheader">Email</th>
-            <th role="columnheader">Role</th>
-            <th role="columnheader">Wallet Balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Filled by JS -->
-        </tbody>
-      </table>
-      <div id="tableMessage" class="loading"></div>
+    <!-- Agents Section -->
+    <section id="agents" class="admin-section hidden">
+      <div class="admin-section-header"><h2>Agent Management</h2></div>
+      <div id="agentTableContainer"></div>
     </section>
-  </div>
-
-<script>
-  const token = localStorage.getItem('adminToken');
-  const apiBase = 'https://your-backend-url/api';
-
-  async function fetchReports(startDate, endDate) {
-    const url = new URL(\`\${apiBase}/admin/reports\`);
-    if (startDate) url.searchParams.append('startDate', startDate);
-    if (endDate) url.searchParams.append('endDate', endDate);
-
-    try {
-      const res = await fetch(url, {
-        headers: { Authorization: \`Bearer \${token}\` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch reports');
-      return await res.json();
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async function fetchUsers(role = '') {
-    const url = new URL(\`\${apiBase}/admin/users\`);
-    if (role) url.searchParams.append('role', role);
-
-    try {
-      const res = await fetch(url, {
-        headers: { Authorization: \`Bearer \${token}\` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch users');
-      return await res.json();
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  function displayReports(data) {
-    document.getElementById('totalRecharge').textContent =
-      data.totalRecharge ? data.totalRecharge.toFixed(2) : '0.00';
-    document.getElementById('totalRedeem').textContent =
-      data.totalRedeem ? data.totalRedeem.toFixed(2) : '0.00';
-    document.getElementById('activeUsers').textContent = data.activeUsers || 0;
-    document.getElementById('inactiveUsers').textContent = data.inactiveUsers || 0;
-    document.getElementById('totalUsers').textContent = data.totalUsers || 0;
-  }
-
-  function displayUsers(users) {
-    const tbody = document.getElementById('userTable').querySelector('tbody');
-    const tableMessage = document.getElementById('tableMessage');
-    tbody.innerHTML = '';
-    tableMessage.textContent = '';
-
-    if (!users.length) {
-      tableMessage.textContent = 'No users found.';
-      return;
-    }
-
-    users.forEach(user => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = \`
-        <td>\${user.name || '-'}</td>
-        <td>\${user.email || '-'}</td>
-        <td>\${user.role || '-'}</td>
-        <td>\${user.walletBalance != null ? user.walletBalance.toFixed(2) : '0.00'}</td>
-      \`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  async function loadReports() {
-    const startDate = document.getElementById('dateStart').value;
-    const endDate = document.getElementById('dateEnd').value;
-    try {
-      toggleLoading(true, 'Loading reports...');
-      const reports = await fetchReports(startDate, endDate);
-      displayReports(reports);
-      toggleLoading(false);
-    } catch (err) {
-      toggleLoading(false);
-      alert('Error loading reports: ' + err.message);
-    }
-  }
-
-  async function loadUsers() {
-    const role = document.getElementById('roleFilter').value;
-    const tableMessage = document.getElementById('tableMessage');
-    try {
-      tableMessage.textContent = 'Loading users...';
-      const users = await fetchUsers(role);
-      displayUsers(users);
-      tableMessage.textContent = '';
-    } catch (err) {
-      alert('Error loading users: ' + err.message);
-    }
-  }
-
-  function toggleLoading(show, message = '') {
-    const container = document.querySelector('.container');
-    if (show) {
-      let loader = document.getElementById('loader');
-      if (!loader) {
-        loader = document.createElement('div');
-        loader.id = 'loader';
-        loader.textContent = message || 'Loading...';
-        loader.style.textAlign = 'center';
-        loader.style.margin = '15px 0';
-        loader.style.color = '#efb810';
-        loader.style.fontWeight = '600';
-        container.prepend(loader);
-      }
-    } else {
-      const loader = document.getElementById('loader');
-      if (loader) loader.remove();
-    }
-  }
-
-  document.getElementById('btnLoadReports').addEventListener('click', loadReports);
-  document.getElementById('btnLoadUsers').addEventListener('click', loadUsers);
-
-  // Load on initial page load
-  window.addEventListener('DOMContentLoaded', () => {
-    loadReports();
-    loadUsers();
-  });
-</script>
-
+    <!-- Game Rounds -->
+    <section id="rounds" class="admin-section hidden">
+      <div class="admin-section-header">
+        <h2>Game Rounds</h2>
+        <button id="btnNewRound">Add Round</button>
+      </div>
+      <div id="roundTableContainer"></div>
+    </section>
+    <!-- Bets -->
+    <section id="bets" class="admin-section hidden">
+      <div class="admin-section-header"><h2>Bets Monitor</h2></div>
+      <div id="betTableContainer"></div>
+    </section>
+    <!-- Reports -->
+    <section id="reports" class="admin-section hidden">
+      <div class="admin-section-header"><h2>Reports</h2></div>
+      <div id="reportContent"></div>
+    </section>
+    <!-- Notifications -->
+    <section id="notifications" class="admin-section hidden">
+      <div class="admin-section-header"><h2>Notifications</h2></div>
+      <form id="notificationForm">
+        <textarea id="notifMsg" placeholder="Type notification..."></textarea>
+        <button type="submit">Send</button>
+      </form>
+      <div id="notifLogs"></div>
+    </section>
+    <!-- Config -->
+    <section id="config" class="admin-section hidden">
+      <div class="admin-section-header"><h2>Config</h2></div>
+      <form id="configForm">
+        <label>Payout Rate: <input type="number" id="cfgPayout" min="1" max="99"></label><br>
+        <label>Commission Fee (%): <input type="number" id="cfgComm" min="0" max="10"></label><br>
+        <label>Round Timer (sec): <input type="number" id="cfgTimer" min="10" max="180"></label><br>
+        <button type="submit">Update Config</button>
+      </form>
+    </section>
+  </main>
+</div>
+<!-- Modals for user/round -->
+<div id="modalBase" class="modal-bg hidden"><div class="modal-content" id="modalContent"></div></div>
+<script src="admin.js"></script>
 </body>
 </html>
