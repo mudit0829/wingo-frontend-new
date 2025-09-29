@@ -56,17 +56,6 @@ function showLoadingAnimation() {
   const overlay = document.getElementById("betClosedOverlay");
   if (!overlay) return;
   overlay.style.display = "flex";
-  let count = 5;
-  const countdownDiv = document.getElementById("betClosedCountdown");
-  countdownDiv.textContent = count;
-
-  let interval = setInterval(() => {
-    count--;
-    countdownDiv.textContent = count;
-    if (count <= 0) {
-      clearInterval(interval);
-    }
-  }, 1000);
 }
 
 function hideLoadingAnimation() {
@@ -93,20 +82,27 @@ function startTimer() {
     const seconds = (rem % 60).toString().padStart(2, "0");
     timeDigits.textContent = `${minutes}:${seconds}`;
 
-    if (rem <= 5 && !betClosed) {
-      betClosed = true;
-      disableAllBetButtons();
-      showLoadingAnimation();
+    const countdownDiv = document.getElementById("betClosedCountdown");
+    if (!countdownDiv) return;
+
+    if (rem <= 5) {
+      if (!betClosed) {
+        betClosed = true;
+        disableAllBetButtons();
+        showLoadingAnimation();
+      }
+      countdownDiv.textContent = rem;
+    } else {
+      if (betClosed) {
+        betClosed = false;
+        enableAllBetButtons();
+        hideLoadingAnimation();
+      }
     }
 
     if (rem === 0) {
-      hideLoadingAnimation();
-      enableAllBetButtons();
-
       // Fetch next round info to sync new endTime
       fetchCurrentRound();
-
-      betClosed = false;
     }
   }, 1000);
 }
