@@ -66,10 +66,12 @@ function hideLoadingAnimation() {
 
 // == Timer logic ==
 let betClosed = false;
+let animationPlayedForThisRound = false;
 let timerInterval = null;
 
 function startTimer() {
   if (timerInterval) clearInterval(timerInterval);
+  animationPlayedForThisRound = false;
 
   timerInterval = setInterval(() => {
     if (!roundEndTime) return;
@@ -86,23 +88,27 @@ function startTimer() {
     if (!countdownDiv) return;
 
     if (rem <= 5) {
-      if (!betClosed) {
-        betClosed = true;
-        disableAllBetButtons();
-        showLoadingAnimation();
-      }
+      disableAllBetButtons();
       countdownDiv.textContent = rem;
-    } else {
-      if (betClosed) {
-        betClosed = false;
-        enableAllBetButtons();
-        hideLoadingAnimation();
+      if (!animationPlayedForThisRound && rem === 5) {
+        showLoadingAnimation();
+        animationPlayedForThisRound = true;
       }
+      if (animationPlayedForThisRound) {
+        document.getElementById("betClosedOverlay").style.display = "flex";
+      }
+    } else {
+      enableAllBetButtons();
+      document.getElementById("betClosedOverlay").style.display = "none";
+      betClosed = false;
+      animationPlayedForThisRound = false;
     }
 
     if (rem === 0) {
-      // Fetch next round info to sync new endTime
+      document.getElementById("betClosedOverlay").style.display = "none";
       fetchCurrentRound();
+      betClosed = false;
+      animationPlayedForThisRound = false;
     }
   }, 1000);
 }
@@ -239,26 +245,6 @@ async function fetchWalletBalance() {
     document.getElementById("walletAmount").innerText = parseFloat(d.wallet || 0).toFixed(2);
   } catch (e) {
     console.error(e);
-  }
-}
-
-// == Current round ==
-async function fetchCurrentRound() {
-  try {
-    const r = await fetch(`${apiUrl}/api/rounds/current?gameType=${selectedGameType}`);
-    if (!r.ok) return;
-    const round = await r.json();
-    if (!round?.roundId || !round?.endTime) return;
-    currentRoundId = round.roundId;
-    roundEndTime = new Date(round.endTime).getTime();
-    document.getElementById("roundId").textContent = round.roundId;
-
-    if (!timerInterval) {
-      betClosed = false;
-      startTimer();
-    }
-  } catch (err) {
-    console.error(err.message);
   }
 }
 
