@@ -113,6 +113,74 @@ function startTimer() {
   }, 1000);
 }
 
+// == Result popup functionality ==
+
+function showResultPopup({isWin, result, bonus, period, autoCloseSec=3}) {
+  const wrapper = document.getElementById('resultPopup');
+  const img = document.getElementById('resultBgImg');
+  const congrats = document.getElementById('congratsText');
+  const lose = document.getElementById('loseText');
+  const detail = document.getElementById('resultDetail');
+  const bonusPart = document.getElementById('bonusPart');
+  const autoNote = document.getElementById('autoCloseNote');
+
+  wrapper.style.display = 'block';
+  congrats.style.display = isWin ? '' : 'none';
+  lose.style.display = isWin ? 'none' : '';
+  img.src = isWin ? 'winningBG.jpg' : 'losingbg.jpg';
+
+  // Prepare win details
+  let detailHtml = '';
+  if(isWin && result){
+    if(result.color) detailHtml += `<span style="background:#27ae60;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.color}</span>`;
+    if(result.number !== undefined) detailHtml += `<span style="background:#fff;color:#e67e22;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.number}</span>`;
+    if(result.size) detailHtml += `<span style="background:#006fd2;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.size}</span>`;
+  }
+  detail.innerHTML = isWin ? `<div style="font-size:1.15em;">Lottery results ${detailHtml}</div>` : '';
+
+  if(isWin && bonus){
+    bonusPart.style.display = '';
+    bonusPart.innerHTML = `<div>Bonus<br><span style="font-size:1.44em;font-weight:900;color:#E74C3C;">₹${bonus.toFixed(2)}</span><br><span style="font-size:14px;color:#888;">Period: ${period}</span></div>`;
+  } else {
+    bonusPart.style.display = 'none';
+  }
+
+  autoNote.innerHTML = `<span>⏳ ${autoCloseSec} seconds auto close</span>`;
+
+  setTimeout(hideResultPopup, autoCloseSec*1000);
+}
+function hideResultPopup() {
+  document.getElementById('resultPopup').style.display = 'none';
+}
+window.hideResultPopup = hideResultPopup;
+
+// == Result processing based on bets ==
+// Call this function with the bet results and round data after results arrive
+
+function processResultPopup(betResults, roundData) {
+  if (!Array.isArray(betResults)) {
+    console.error('Invalid betResults:', betResults);
+    return;
+  }
+
+  const isWin = betResults.some(bet => bet.win === true);
+  const totalBonus = betResults.reduce((sum, bet) => bet.win ? sum + (bet.bonus || 0) : sum, 0);
+
+  const resultDetail = {
+    color: roundData.resultColor,
+    number: roundData.resultNumber,
+    size: (roundData.resultNumber >= 5 ? "Big" : "Small")
+  };
+
+  showResultPopup({
+    isWin,
+    result: isWin ? resultDetail : null,
+    bonus: isWin ? totalBonus : null,
+    period: roundData.roundId,
+    autoCloseSec: 3
+  });
+}
+
 // == Current round ==
 async function fetchCurrentRound() {
   try {
@@ -391,7 +459,6 @@ function renderPagination(containerId, page, pageCount, setPageFnName) {
   pag.appendChild(nextBtn);
 }
 
-
 // == Init ==
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
@@ -419,44 +486,6 @@ document.addEventListener("DOMContentLoaded", () => {
       loadMyHistory();
     });
   });
-function showResultPopup({win, result, bonus, period, autoCloseSec=3}) {
-  const wrapper = document.getElementById('resultPopup');
-  const img = document.getElementById('resultBgImg');
-  const congrats = document.getElementById('congratsText');
-  const lose = document.getElementById('loseText');
-  const detail = document.getElementById('resultDetail');
-  const bonusPart = document.getElementById('bonusPart');
-  const autoNote = document.getElementById('autoCloseNote');
-
-  wrapper.style.display = 'block';
-  congrats.style.display = win ? '' : 'none';
-  lose.style.display = win ? 'none' : '';
-  img.src = win ? 'winningBG.jpg' : 'losingbg.jpg';
-
-  // Build the result details
-  let detailHtml = '';
-  if(win && result){
-    if(result.color) detailHtml += `<span style="background:#27ae60;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.color}</span>`;
-    if(result.number !== undefined) detailHtml += `<span style="background:#fff;color:#e67e22;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.number}</span>`;
-    if(result.size) detailHtml += `<span style="background:#006fd2;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.size}</span>`;
-  }
-  detail.innerHTML = win ? `<div style="font-size:1.15em;">Lottery results ${detailHtml}</div>` : '';
-  // Period and bonus
-  if(win && bonus) {
-    bonusPart.style.display = '';
-    bonusPart.innerHTML = `<div>Bonus<br><span style="font-size:1.44em;font-weight:900;color:#E74C3C;">₹${bonus.toFixed(2)}</span><br><span style="font-size:14px;color:#888;">Period: ${period}</span></div>`;
-  } else {
-    bonusPart.style.display = 'none';
-  }
-  autoNote.innerHTML = `<span>⏳ ${autoCloseSec} seconds auto close</span>`;
-  
-  // Auto-close logic
-  setTimeout(hideResultPopup, autoCloseSec*1000);
-}
-function hideResultPopup() {
-  document.getElementById('resultPopup').style.display = 'none';
-}
-
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
