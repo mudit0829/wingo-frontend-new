@@ -2,7 +2,7 @@ const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
-  if (!token) return window.location.href = 'index.html';
+  if (!token) return window.location.href = 'index1.html';
 
   // Fetch user profile (email)
   try {
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const backBtn = document.getElementById("backToGameBtn");
   if (backBtn) {
     backBtn.onclick = function() {
-      window.location.href = "index.html";
+      window.location.href = "index1.html";
     };
   }
 });
