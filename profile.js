@@ -1,45 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>User Profile - Wingo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="profile.css">
-</head>
-<body class="profile-bg">
-  <div class="profile-outer">
-    <div class="profile-header">
-      <img src="assets/logo.png" alt="Wingo Logo" class="profile-logo">
-      <div class="profile-user-row">
-        <div class="profile-email-label">Email:</div>
-        <div class="profile-email" id="profileEmail"></div>
-      </div>
-    </div>
+const apiUrl = "https://wingo-backend-nqk5.onrender.com";
 
-    <div class="profile-main-block">
-      <div class="profile-block-row">
-        <div class="profile-block active">
-          <div class="pb-icon wallet-icon"></div>
-          <div class="pb-label">Wallet</div>
-          <div class="pb-value" id="walletAmount">₹0.00</div>
-        </div>
-      </div>
-    </div>
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return window.location.href = 'index.html';
 
-    <div class="profile-bottom-outer">
-      <div class="profile-nav-list">
-        <button class="profile-nav" onclick="openGameHistory()">
-          <span class="nav-icon game-icon"></span>
-          My Game History
-        </button>
-        <button class="profile-nav" onclick="openTransactionHistory()">
-          <span class="nav-icon trans-icon"></span>
-          My Transaction History
-        </button>
-      </div>
-      <button class="profile-logout-btn" id="logoutBtn">Log out</button>
-    </div>
-  </div>
-  <script src="profile.js"></script>
-</body>
-</html>
+  // Fetch user profile (email)
+  try {
+    const res = await fetch(`${apiUrl}/api/users/profile`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById("profileEmail").textContent = data.email || "(No email)";
+    } else {
+      document.getElementById("profileEmail").textContent = "(Error fetching profile)";
+    }
+  } catch {
+    document.getElementById("profileEmail").textContent = "(Error fetching profile)";
+  }
+
+  // Fetch wallet balance
+  try {
+    const res = await fetch(`${apiUrl}/api/users/wallet`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById("walletAmount").textContent = "₹" + (Number(data.wallet) || 0).toFixed(2);
+    } else {
+      document.getElementById("walletAmount").textContent = "₹0.00";
+    }
+  } catch {
+    document.getElementById("walletAmount").textContent = "₹0.00";
+  }
+
+  // Logout button handler
+  document.getElementById("logoutBtn").onclick = () => {
+    localStorage.clear();
+    window.location.href = "index.html";
+  };
+
+  // Navigation handlers (only two as requested)
+  window.openGameHistory = () => window.location.href = "game-history.html";
+  window.openTransactionHistory = () => window.location.href = "transaction-history.html";
+});
