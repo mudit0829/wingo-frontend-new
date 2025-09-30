@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Transaction History - WinGo</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background:#121116; color:#fff; font-family:sans-serif; padding:15px; }
+    h1 { text-align:center; margin-bottom:12px; font-size:1.2em; }
+    table { width: 100%; border-collapse: collapse; margin-top:12px; font-size: 0.6em; }
+    th, td { padding: 6px; border-bottom: 1px solid #444; text-align: center; }
+    th { background-color: #1f1e22; font-size: 1em; }
+    tr:hover { background-color: #27262b; }
+    .btn-back { position: fixed; top: 10px; left: 10px; font-size: 15px; color: #ffb900; background: none; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <button class="btn-back" onclick="history.back()">← Back</button>
+  <h1>My Transaction History</h1>
+  <table aria-label="Transaction History">
+    <thead>
+      <tr><th>Date</th><th>Points (Redeem or Update)</th></tr>
+    </thead>
+    <tbody id="transactionBody">
+      <tr><td colspan="2">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    (async function fetchTransactionHistory() {
+      const token = localStorage.getItem('token');
+      if (!token) return window.location.href = 'index.html';
+      try {
+        const res = await fetch('https://wingo-backend-nqk5.onrender.com/api/transactions/user', {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const transactionBody = document.getElementById("transactionBody");
+        if (!res.ok) {
+          transactionBody.innerHTML = `<tr><td colspan="2">Failed to load transaction history.</td></tr>`;
+          return;
+        }
+        const transactions = await res.json();
+        if (!transactions.length) {
+          transactionBody.innerHTML = `<tr><td colspan="2">No transaction history available.</td></tr>`;
+          return;
+        }
+        transactionBody.innerHTML = '';
+        transactions.forEach(tx => {
+          const date = new Date(tx.date || tx.timestamp || tx.createdAt).toLocaleString();
+          const points = `${tx.points >= 0 ? '+' : ''}${tx.points || 0} ${tx.type || ''}`;
+          const row = `<tr><td>${date}</td><td>${points}</td></tr>`;
+          transactionBody.insertAdjacentHTML('beforeend', row);
+        });
+      } catch (err) {
+        const transactionBody = document.getElementById("transactionBody");
+        transactionBody.innerHTML = `<tr><td colspan="2">Error loading transaction history.</td></tr>`;
+        console.error(err);
+      }
+    })();
+  </script>
+</body>
+</html>
