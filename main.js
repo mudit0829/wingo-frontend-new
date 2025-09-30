@@ -439,6 +439,21 @@ document.addEventListener("DOMContentLoaded", () => {
       loadMyHistory();
     });
   });
+
+  function showSimpleResultPopup(isWin) {
+  const popup = document.getElementById('simpleResultPopup');
+  const msg = document.getElementById('simpleResultMsg');
+  if (isWin) {
+    msg.innerText = "You Won!";
+    msg.style.color = "#27ae60";
+  } else {
+    msg.innerText = "You Lose!";
+    msg.style.color = "#e74c3c";
+  }
+  popup.style.display = "flex";
+  setTimeout(() => { popup.style.display = "none"; }, 1600);
+}
+
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
