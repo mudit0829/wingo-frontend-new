@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Game History - WinGo</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background:#121116; color:#fff; font-family:sans-serif; padding:15px; }
+    h1 { text-align:center; margin-bottom:20px; }
+    table { width: 100%; border-collapse: collapse; margin-top:20px; }
+    th, td { padding: 10px; border-bottom: 1px solid #444; text-align: center; }
+    th { background-color: #1f1e22; }
+    tr:hover { background-color: #27262b; }
+    .btn-back { position: fixed; top: 15px; left: 15px; font-size: 24px; color: #ffb900; background: none; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <button class="btn-back" onclick="history.back()">← Back</button>
+  <h1>My Game History</h1>
+  <table id="historyTable" aria-label="Game History">
+    <thead>
+      <tr><th>Round</th><th>Number</th><th>Big/Small</th><th>Color</th><th>Result</th></tr>
+    </thead>
+    <tbody id="historyBody">
+      <tr><td colspan="5">Loading...</td></tr>
+    </tbody>
+  </table>
+  <script>
+    (async function fetchGameHistory() {
+      const token = localStorage.getItem('token');
+      if (!token) return window.location.href = 'index.html';
+      try {
+        const res = await fetch('https://wingo-backend-nqk5.onrender.com/api/bets/user?gameType=WIN30', {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const historyBody = document.getElementById("historyBody");
+        if (!res.ok) {
+          historyBody.innerHTML = `<tr><td colspan="5">Failed to load game history.</td></tr>`;
+          return;
+        }
+        const bets = await res.json();
+        if (!bets.length) {
+          historyBody.innerHTML = `<tr><td colspan="5">No game history available.</td></tr>`;
+          return;
+        }
+        historyBody.innerHTML = ''; // Clear loading text
+        bets.forEach(bet => {
+          const numberBet = bet.numberBet != null ? bet.numberBet : '-';
+          const bigSmallBet = bet.bigSmallBet || '-';
+          const colorBet = bet.colorBet || '-';
+          const result = bet.win ? 'Won' : (bet.win === false ? 'Lost' : 'Pending');
+          const row = `<tr><td>${bet.roundId}</td><td>${numberBet}</td><td>${bigSmallBet}</td><td>${colorBet}</td><td>${result}</td></tr>`;
+          historyBody.insertAdjacentHTML('beforeend', row);
+        });
+      } catch (e) {
+        const historyBody = document.getElementById("historyBody");
+        historyBody.innerHTML = `<tr><td colspan="5">Error loading game history.</td></tr>`;
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
