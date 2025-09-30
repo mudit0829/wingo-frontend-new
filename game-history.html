@@ -7,12 +7,12 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     body { background:#121116; color:#fff; font-family:sans-serif; padding:15px; }
-    h1 { text-align:center; margin-bottom:20px; }
-    table { width: 100%; border-collapse: collapse; margin-top:20px; }
-    th, td { padding: 10px; border-bottom: 1px solid #444; text-align: center; }
-    th { background-color: #1f1e22; }
+    h1 { text-align:center; margin-bottom:12px; font-size:1.2em; }
+    table { width: 100%; border-collapse: collapse; margin-top:12px; font-size: 0.6em; }
+    th, td { padding: 6px; border-bottom: 1px solid #444; text-align: center; }
+    th { background-color: #1f1e22; font-size: 1em; }
     tr:hover { background-color: #27262b; }
-    .btn-back { position: fixed; top: 15px; left: 15px; font-size: 24px; color: #ffb900; background: none; border: none; cursor: pointer; }
+    .btn-back { position: fixed; top: 10px; left: 10px; font-size: 15px; color: #ffb900; background: none; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -44,7 +44,7 @@
           historyBody.innerHTML = `<tr><td colspan="5">No game history available.</td></tr>`;
           return;
         }
-        historyBody.innerHTML = ''; // Clear loading text
+        historyBody.innerHTML = '';
         bets.forEach(bet => {
           const numberBet = bet.numberBet != null ? bet.numberBet : '-';
           const bigSmallBet = bet.bigSmallBet || '-';
