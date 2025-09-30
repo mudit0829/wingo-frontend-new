@@ -43,4 +43,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Navigation handlers (only two as requested)
   window.openGameHistory = () => window.location.href = "game-history.html";
   window.openTransactionHistory = () => window.location.href = "transaction-history.html";
+
+  // Back to game button (top left arrow)
+  const backBtn = document.getElementById("backToGameBtn");
+  if (backBtn) {
+    backBtn.onclick = function() {
+      window.location.href = "index.html";
+    };
+  }
 });
