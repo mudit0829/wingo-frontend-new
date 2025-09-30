@@ -57,7 +57,6 @@ function showLoadingAnimation() {
   if (!overlay) return;
   overlay.style.display = "flex";
 }
-
 function hideLoadingAnimation() {
   const overlay = document.getElementById("betClosedOverlay");
   if (!overlay) return;
@@ -72,21 +71,16 @@ let timerInterval = null;
 function startTimer() {
   if (timerInterval) clearInterval(timerInterval);
   animationPlayedForThisRound = false;
-
   timerInterval = setInterval(() => {
     if (!roundEndTime) return;
-
     let rem = Math.floor((roundEndTime - Date.now()) / 1000);
     if (rem < 0) rem = 0;
-
     const timeDigits = document.getElementById("timeDigits");
     const minutes = Math.floor(rem / 60).toString().padStart(2, "0");
     const seconds = (rem % 60).toString().padStart(2, "0");
     timeDigits.textContent = `${minutes}:${seconds}`;
-
     const countdownDiv = document.getElementById("betClosedCountdown");
     if (!countdownDiv) return;
-
     if (rem <= 5) {
       disableAllBetButtons();
       countdownDiv.textContent = rem;
@@ -103,7 +97,6 @@ function startTimer() {
       betClosed = false;
       animationPlayedForThisRound = false;
     }
-
     if (rem === 0) {
       document.getElementById("betClosedOverlay").style.display = "none";
       fetchCurrentRound();
@@ -113,8 +106,7 @@ function startTimer() {
   }, 1000);
 }
 
-// == Result popup functionality ==
-
+// === WIN/LOSS POPUP CODE ===
 function showResultPopup({isWin, result, bonus, period, autoCloseSec=3}) {
   const wrapper = document.getElementById('resultPopup');
   const img = document.getElementById('resultBgImg');
@@ -123,13 +115,10 @@ function showResultPopup({isWin, result, bonus, period, autoCloseSec=3}) {
   const detail = document.getElementById('resultDetail');
   const bonusPart = document.getElementById('bonusPart');
   const autoNote = document.getElementById('autoCloseNote');
-
   wrapper.style.display = 'block';
   congrats.style.display = isWin ? '' : 'none';
   lose.style.display = isWin ? 'none' : '';
   img.src = isWin ? 'winningBG.jpg' : 'losingbg.jpg';
-
-  // Prepare win details
   let detailHtml = '';
   if(isWin && result){
     if(result.color) detailHtml += `<span style="background:#27ae60;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.color}</span>`;
@@ -137,16 +126,13 @@ function showResultPopup({isWin, result, bonus, period, autoCloseSec=3}) {
     if(result.size) detailHtml += `<span style="background:#006fd2;color:#fff;padding:2px 10px;margin:0 2px;border-radius:7px;font-weight:700;">${result.size}</span>`;
   }
   detail.innerHTML = isWin ? `<div style="font-size:1.15em;">Lottery results ${detailHtml}</div>` : '';
-
   if(isWin && bonus){
     bonusPart.style.display = '';
     bonusPart.innerHTML = `<div>Bonus<br><span style="font-size:1.44em;font-weight:900;color:#E74C3C;">₹${bonus.toFixed(2)}</span><br><span style="font-size:14px;color:#888;">Period: ${period}</span></div>`;
   } else {
     bonusPart.style.display = 'none';
   }
-
   autoNote.innerHTML = `<span>⏳ ${autoCloseSec} seconds auto close</span>`;
-
   setTimeout(hideResultPopup, autoCloseSec*1000);
 }
 function hideResultPopup() {
@@ -154,24 +140,19 @@ function hideResultPopup() {
 }
 window.hideResultPopup = hideResultPopup;
 
-// == Result processing based on bets ==
-// Call this function with the bet results and round data after results arrive
-
+// Call this function after each round to show win/loss popup:
 function processResultPopup(betResults, roundData) {
   if (!Array.isArray(betResults)) {
     console.error('Invalid betResults:', betResults);
     return;
   }
-
   const isWin = betResults.some(bet => bet.win === true);
   const totalBonus = betResults.reduce((sum, bet) => bet.win ? sum + (bet.bonus || 0) : sum, 0);
-
   const resultDetail = {
     color: roundData.resultColor,
     number: roundData.resultNumber,
     size: (roundData.resultNumber >= 5 ? "Big" : "Small")
   };
-
   showResultPopup({
     isWin,
     result: isWin ? resultDetail : null,
@@ -191,7 +172,6 @@ async function fetchCurrentRound() {
     currentRoundId = round.roundId;
     roundEndTime = new Date(round.endTime).getTime();
     document.getElementById("roundId").textContent = round.roundId;
-
     if (!timerInterval) {
       betClosed = false;
       startTimer();
@@ -201,13 +181,13 @@ async function fetchCurrentRound() {
   }
 }
 
-// == Tab switching ==
+// == Rest of your original code follows unchanged ==
+
 function showTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-
   if (id === "gameHistory") {
     document.getElementById("gameHistoryPagination").style.display = "";
     document.getElementById("myHistoryPagination").style.display = "none";
@@ -224,16 +204,12 @@ function showTab(id, btn) {
   }
 }
 window.showTab = showTab;
-
-// == Bet triggers ==
 function selectColor(c) { openBetPopup("color", c); }
 function selectNumber(n) { openBetPopup("number", n); }
 function selectBigSmall(v) { openBetPopup("bigSmall", v); }
 window.selectColor = selectColor;
 window.selectNumber = selectNumber;
 window.selectBigSmall = selectBigSmall;
-
-// == Multiplier selection ==
 function selectMultiplier(m) {
   document.querySelectorAll(".multiplier-btn").forEach(btn => btn.classList.remove("active"));
   const btn = Array.from(document.querySelectorAll(".multiplier-btn")).find(b => b.textContent.trim() === m);
@@ -242,8 +218,6 @@ function selectMultiplier(m) {
   selectedDenom = selectedMultiplier;
   updatePopupTotal();
 }
-
-// == Bet popup ==
 function openBetPopup(t, c) {
   selectedBetType = t;
   selectedBetValue = c;
@@ -263,8 +237,6 @@ function openBetPopup(t, c) {
 }
 function closeBetPopup() { document.getElementById("betModal").classList.add("hidden"); }
 window.closeBetPopup = closeBetPopup;
-
-// == Popup controls ==
 function wireBetModalControls() {
   document.querySelectorAll(".bet-buttons button[data-balance]").forEach(btn =>
     btn.addEventListener("click", () => {
@@ -289,8 +261,6 @@ function updatePopupTotal() {
   const qty = +document.getElementById("betQty").value || 1;
   document.getElementById("totalAmount").textContent = (selectedDenom * qty * selectedMultiplier).toFixed(2);
 }
-
-// == Place bet ==
 async function handlePlaceBet() {
   if (!requireLogin()) return;
   const qty = Number(document.getElementById("betQty")?.value || 1);
@@ -322,8 +292,6 @@ async function handlePlaceBet() {
   }
   closeBetPopup();
 }
-
-// == Wallet ==
 async function fetchWalletBalance() {
   if (!requireLogin()) return;
   try {
@@ -335,8 +303,6 @@ async function fetchWalletBalance() {
     console.error(e);
   }
 }
-
-// == Game history pagination and render ==
 function renderGameHistoryPage() {
   const cont = document.getElementById("gameHistory");
   const arr = gameHistoryArr.slice(0, itemsPerPage * maxPages);
@@ -363,8 +329,6 @@ window.setGamePage = function(p) {
   gamePage = Math.max(0, Math.min(p, maxPages - 1));
   renderGameHistoryPage();
 }
-
-// == My history pagination and render ==
 function renderMyHistoryPage() {
   const cont = document.getElementById("myHistory");
   const arr = myHistoryArr.slice(0, itemsPerPage * maxPages);
@@ -398,8 +362,6 @@ window.setMyPage = function(p) {
   myPage = Math.max(0, Math.min(p, maxPages - 1));
   renderMyHistoryPage();
 }
-
-// == Load game history ==
 async function loadGameHistory() {
   try {
     const r = await fetch(`${apiUrl}/api/rounds?gameType=${selectedGameType}`);
@@ -414,8 +376,6 @@ async function loadGameHistory() {
     console.error("Error loading game history:", err);
   }
 }
-
-// == Load my history ==
 async function loadMyHistory() {
   if (!requireLogin()) return;
   try {
@@ -430,8 +390,6 @@ async function loadMyHistory() {
     console.error("Error loading my history:", err);
   }
 }
-
-// == Pagination helpers ==
 function renderPagination(containerId, page, pageCount, setPageFnName) {
   const pag = document.getElementById(containerId);
   if (!pag) return;
@@ -440,26 +398,21 @@ function renderPagination(containerId, page, pageCount, setPageFnName) {
     return;
   }
   pag.innerHTML = "";
-
   const prevBtn = document.createElement("button");
   prevBtn.textContent = "‹";
   prevBtn.disabled = page <= 0;
   prevBtn.onclick = () => window[setPageFnName](page - 1);
   pag.appendChild(prevBtn);
-
   const pageInfo = document.createElement("span");
   pageInfo.style.margin = "0 10px";
   pageInfo.textContent = `${page + 1} / ${pageCount}`;
   pag.appendChild(pageInfo);
-
   const nextBtn = document.createElement("button");
   nextBtn.textContent = "›";
   nextBtn.disabled = page >= pageCount - 1;
   nextBtn.onclick = () => window[setPageFnName](page + 1);
   pag.appendChild(nextBtn);
 }
-
-// == Init ==
 document.addEventListener("DOMContentLoaded", () => {
   if (!requireLogin()) return;
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
@@ -489,4 +442,14 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(fetchCurrentRound, 3000);
   setInterval(loadGameHistory, 10000);
   setInterval(loadMyHistory, 10000);
+
+  // TEST BUTTONS: (Remove/comment after testing!)
+  window.testWin = function() {
+    processResultPopup([{win:true,bonus:15},{win:false,bonus:0},{win:false,bonus:0}],
+    {roundId:"TESTWIN",resultColor:"Green",resultNumber:8});
+  };
+  window.testLose = function() {
+    processResultPopup([{win:false,bonus:0},{win:false,bonus:0},{win:false,bonus:0}],
+    {roundId:"TESTLOSE",resultColor:"Red",resultNumber:3});
+  };
 });
